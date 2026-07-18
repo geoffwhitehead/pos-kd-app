@@ -77,7 +77,13 @@ function buildRelativeSegmentStyle(
   endIso: string,
   overlayStartIso: string,
   overlayEndIso: string,
-  bounds: KitchenDisplayResponse["timeline"] & { serviceDate: string }
+  bounds: {
+    startHour: number;
+    endHour: number;
+    serviceDate: string;
+    startIso?: string;
+    endIso?: string;
+  }
 ) {
   const overlayLeft = Number.parseFloat(
     buildSegmentStyle(overlayStartIso, overlayEndIso, bounds).left
