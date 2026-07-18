@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 import { useKitchenDisplayPolling } from "./useKitchenDisplayPolling";
@@ -12,6 +12,7 @@ vi.mock("../config/api", () => ({
 describe("useKitchenDisplayPolling", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
   it("passes bearer and refresh headers to the board request", async () => {
@@ -71,5 +72,75 @@ describe("useKitchenDisplayPolling", () => {
     await waitFor(() => {
       expect(onAuthFailure).toHaveBeenCalled();
     });
+  });
+
+  it("does not immediately refetch when session tokens are refreshed", async () => {
+    vi.useFakeTimers();
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers({
+        authorization: "Bearer access_456",
+        "x-refresh-token": "refresh_789"
+      }),
+      json: async () => sampleKitchenDisplayResponse
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const onSessionRefresh = vi.fn();
+
+    const { rerender } = renderHook(
+      ({ session }) =>
+        useKitchenDisplayPolling(session, {
+          onAuthFailure: () => {},
+          onSessionRefresh
+        }),
+      {
+        initialProps: {
+          session: {
+            accessToken: "access_123",
+            refreshToken: "refresh_456"
+          }
+        }
+      }
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    const initialCallCount = fetchMock.mock.calls.length;
+
+    expect(initialCallCount).toBeGreaterThan(0);
+    expect(onSessionRefresh).toHaveBeenCalledWith({
+      accessToken: "access_456",
+      refreshToken: "refresh_789"
+    });
+
+    rerender({
+      session: {
+        accessToken: "access_456",
+        refreshToken: "refresh_789"
+      }
+    });
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(4900);
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(initialCallCount);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(100);
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(initialCallCount + 1);
   });
 });

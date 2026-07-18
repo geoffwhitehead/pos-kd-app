@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { fetchKitchenDisplay } from "../api/fetchKitchenDisplay";
 import type { AuthSession } from "../types/auth";
 import type { KitchenDisplayResponse } from "../types/kitchenDisplay";
@@ -14,12 +14,26 @@ export function useKitchenDisplayPolling(
   session: AuthSession | null,
   options: Options = {}
 ) {
+  const hasSession = session != null;
   const [data, setData] = useState<KitchenDisplayResponse | null>(null);
-  const [isLoading, setIsLoading] = useState(session != null);
+  const [isLoading, setIsLoading] = useState(hasSession);
   const [error, setError] = useState<string | null>(null);
+  const sessionRef = useRef<AuthSession | null>(session);
 
   useEffect(() => {
-    if (session == null) {
+    sessionRef.current = session;
+  }, [session]);
+
+  const notifySessionRefresh = useEffectEvent((nextSession: AuthSession) => {
+    options.onSessionRefresh?.(nextSession);
+  });
+
+  const notifyAuthFailure = useEffectEvent(() => {
+    options.onAuthFailure?.();
+  });
+
+  useEffect(() => {
+    if (!hasSession) {
       setData(null);
       setIsLoading(false);
       setError(null);
@@ -29,15 +43,21 @@ export function useKitchenDisplayPolling(
     let cancelled = false;
 
     async function load() {
+      const currentSession = sessionRef.current;
+
+      if (currentSession == null) {
+        return;
+      }
+
       try {
-        const response = await fetchKitchenDisplay(session);
+        const response = await fetchKitchenDisplay(currentSession);
 
         if (cancelled) {
           return;
         }
 
         if (response.nextSession != null) {
-          options.onSessionRefresh?.(response.nextSession);
+          notifySessionRefresh(response.nextSession);
         }
 
         setData(response.data);
@@ -53,7 +73,7 @@ export function useKitchenDisplayPolling(
         setError(message);
 
         if (message.includes("401")) {
-          options.onAuthFailure?.();
+          notifyAuthFailure();
         }
       } finally {
         if (!cancelled) {
@@ -71,12 +91,7 @@ export function useKitchenDisplayPolling(
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [
-    options.onAuthFailure,
-    options.onSessionRefresh,
-    session?.accessToken,
-    session?.refreshToken
-  ]);
+  }, [hasSession]);
 
   return { data, isLoading, error };
 }

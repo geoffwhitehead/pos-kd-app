@@ -1,24 +1,117 @@
+import type { KitchenDisplayResponse, ServiceBoardRow } from "../types/kitchenDisplay";
+import {
+  floorToHalfHourInServiceTimeZone,
+  formatServiceClockTime,
+  getServiceDateString,
+  getServiceHour,
+  localTimeOnServiceDateToIso
+} from "./time";
+
 type TimelineBounds = {
   startHour: number;
   endHour: number;
   serviceDate: string;
+  startIso?: string;
+  endIso?: string;
 };
 
 export function buildTimelineSlots(startHour: number, endHour: number) {
-  return Array.from({ length: endHour - startHour + 1 }, (_, index) => {
-    const hour = String(startHour + index).padStart(2, "0");
+  const totalHalfHours = (endHour - startHour) * 2;
 
-    return `${hour}:00`;
+  return Array.from({ length: totalHalfHours + 1 }, (_, index) => {
+    const hour = startHour + Math.floor(index / 2);
+    const minutes = index % 2 === 0 ? "00" : "30";
+
+    return `${String(hour).padStart(2, "0")}:${minutes}`;
   });
 }
 
+export function buildTimelineSlotsForWindow(startIso: string, endIso: string) {
+  const slots: string[] = [];
+  const start = new Date(startIso);
+  const end = new Date(endIso);
+
+  for (let value = start.getTime(); value <= end.getTime(); value += 30 * 60 * 1000) {
+    slots.push(formatServiceClockTime(new Date(value)));
+  }
+
+  return slots;
+}
+
+function buildRange(bounds: TimelineBounds) {
+  if (bounds.startIso && bounds.endIso) {
+    return {
+      start: new Date(bounds.startIso),
+      end: new Date(bounds.endIso)
+    };
+  }
+
+  return {
+    start: new Date(localTimeOnServiceDateToIso(bounds.serviceDate, bounds.startHour)),
+    end: new Date(localTimeOnServiceDateToIso(bounds.serviceDate, bounds.endHour))
+  };
+}
+
+function overlapsWindow(startIso: string, endIso: string, windowStartIso: string, windowEndIso: string) {
+  return new Date(endIso).getTime() > new Date(windowStartIso).getTime()
+    && new Date(startIso).getTime() < new Date(windowEndIso).getTime();
+}
+
+export function buildVisibleBoardTimeline(
+  rows: ServiceBoardRow[],
+  timeline: KitchenDisplayResponse["timeline"]
+) {
+  const serviceDate = getServiceDateString(timeline.now);
+  const dayEndIso = localTimeOnServiceDateToIso(serviceDate, timeline.endHour);
+  const earliestActiveStartIso = rows
+    .flatMap((row) => (row.liveOverlay ? [row.liveOverlay.startsAt] : []))
+    .sort()[0];
+  const visibleStartCandidate =
+    earliestActiveStartIso && earliestActiveStartIso < timeline.now
+      ? earliestActiveStartIso
+      : timeline.now;
+  const startIso = floorToHalfHourInServiceTimeZone(visibleStartCandidate);
+
+  return {
+    ...timeline,
+    startHour: getServiceHour(startIso),
+    startIso,
+    endIso: dayEndIso,
+    serviceDate
+  };
+}
+
+export function filterRowsForVisibleWindow(
+  rows: ServiceBoardRow[],
+  visibleTimeline: ReturnType<typeof buildVisibleBoardTimeline>
+) {
+  return rows
+    .map((row) => {
+      const bookings = row.bookings.filter((booking) =>
+        overlapsWindow(booking.startsAt, booking.endsAt, visibleTimeline.startIso, visibleTimeline.endIso)
+      );
+      const liveOverlay =
+        row.liveOverlay &&
+        overlapsWindow(
+          row.liveOverlay.startsAt,
+          row.liveOverlay.endsAt,
+          visibleTimeline.startIso,
+          visibleTimeline.endIso
+        )
+          ? row.liveOverlay
+          : null;
+
+      return {
+        ...row,
+        bookings,
+        liveOverlay
+      };
+    })
+    .filter((row) => row.bookings.length > 0 || row.liveOverlay != null);
+}
+
 export function toTimelinePercent(isoValue: string, bounds: TimelineBounds) {
-  const start = new Date(
-    `${bounds.serviceDate}T${String(bounds.startHour).padStart(2, "0")}:00:00Z`
-  );
-  const end = new Date(
-    `${bounds.serviceDate}T${String(bounds.endHour).padStart(2, "0")}:00:00Z`
-  );
+  const { start, end } = buildRange(bounds);
   const value = new Date(isoValue);
   const ratio =
     (value.getTime() - start.getTime()) / (end.getTime() - start.getTime());

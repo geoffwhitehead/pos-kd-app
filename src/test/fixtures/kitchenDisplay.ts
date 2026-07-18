@@ -32,6 +32,9 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         endsAt: "2026-07-18T18:42:10Z",
         createdAt: "2026-07-18T18:10:00Z",
         updatedAt: "2026-07-18T18:42:10Z",
+        openedAt: "2026-07-18T18:10:00Z",
+        foodOrderedAt: "2026-07-18T18:10:00Z",
+        calledAt: null,
         categorySummary: [
           {
             key: "starters",
@@ -60,6 +63,9 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         endsAt: "2026-07-18T18:42:10Z",
         createdAt: "2026-07-18T18:22:10Z",
         updatedAt: "2026-07-18T18:35:10Z",
+        openedAt: "2026-07-18T18:22:10Z",
+        foodOrderedAt: null,
+        calledAt: null,
         categorySummary: [
           {
             key: "sides",
@@ -98,6 +104,13 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         createdAt: "2026-07-18T18:10:00Z",
         updatedAt: "2026-07-18T18:42:10Z",
         status: "food_ordered",
+        tableCalls: [
+          {
+            id: "call_12_1",
+            displayRef: "12",
+            calledAt: "2026-07-18T18:38:00Z"
+          }
+        ],
         categorySummary: [
           {
             key: "starters",
@@ -127,7 +140,26 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
             quantity: 2,
             printCategory: "Mains",
             course: null,
+            addedAt: "2026-07-18T18:12:00Z",
             modifiers: ["No peas"]
+          },
+          {
+            billItemId: "item_2",
+            name: "Spring Rolls",
+            quantity: 1,
+            printCategory: "Starters",
+            course: null,
+            addedAt: "2026-07-18T18:10:00Z",
+            modifiers: []
+          },
+          {
+            billItemId: "item_3",
+            name: "Sticky Toffee Pudding",
+            quantity: 1,
+            printCategory: "Dessert",
+            course: null,
+            addedAt: "2026-07-18T18:20:00Z",
+            modifiers: []
           }
         ]
       }
@@ -143,6 +175,7 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         createdAt: "2026-07-18T18:30:10Z",
         updatedAt: "2026-07-18T18:45:10Z",
         status: "called",
+        tableCalls: [],
         categorySummary: [
           {
             key: "mains",
@@ -162,6 +195,7 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
             quantity: 1,
             printCategory: "Mains",
             course: null,
+            addedAt: "2026-07-18T18:30:10Z",
             modifiers: []
           },
           {
@@ -170,6 +204,7 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
             quantity: 1,
             printCategory: "Sides",
             course: null,
+            addedAt: "2026-07-18T18:32:10Z",
             modifiers: []
           }
         ]

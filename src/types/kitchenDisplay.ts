@@ -14,6 +14,7 @@ export type KitchenItem = {
   quantity: number;
   printCategory: string | null;
   course: string | null;
+  addedAt?: string;
   modifiers: string[];
 };
 
@@ -21,6 +22,12 @@ export type PrintCategorySummary = {
   key: string;
   label: string;
   count: number;
+};
+
+export type TableCall = {
+  id: string;
+  displayRef: string;
+  calledAt: string;
 };
 
 export type BookingSegment = {
@@ -39,6 +46,9 @@ export type LiveTableOverlay = {
   endsAt: string;
   createdAt: string;
   updatedAt: string;
+  openedAt: string;
+  foodOrderedAt: string | null;
+  calledAt: string | null;
   categorySummary: PrintCategorySummary[];
   hasBookingMatch: boolean;
 };
@@ -55,6 +65,7 @@ export type ActiveOrderCard = {
   status: LiveTableStatus;
   categorySummary: PrintCategorySummary[];
   items: KitchenItem[];
+  tableCalls: TableCall[];
 };
 
 export type ServiceBoardRow = {
