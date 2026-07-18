@@ -1,0 +1,15 @@
+:root {
+  color-scheme: dark;
+  font-family: "Avenir Next", "Segoe UI", sans-serif;
+  --color-bg: #121717;
+  --color-panel: #1d2525;
+  --color-panel-muted: #283232;
+  --color-text: #f2f1e8;
+  --color-subtle: #b6c0bc;
+  --color-accent: #e7a83b;
+  --color-success: #4fb286;
+  --color-warning: #e56b6f;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --shadow-panel: 0 14px 40px rgba(0, 0, 0, 0.28);
+}
+
