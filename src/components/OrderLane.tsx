@@ -34,7 +34,7 @@ function splitOrdersByAge(orders: ActiveOrderCardType[], currentTime: string) {
 
 export function OrderLane({ title, orders, currentTime, onSelect }: Props) {
   const { current, aged } = splitOrdersByAge(orders, currentTime);
-  const shouldSplitIntoRail = title === "In House" && aged.length > 0;
+  const shouldSplitIntoRail = title === "Eat-In" && aged.length > 0;
   const compactGridStyle = {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",

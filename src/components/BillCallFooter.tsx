@@ -1,15 +1,20 @@
 import { formatShortTime } from "../lib/format";
 import type { TableCall } from "../types/kitchenDisplay";
 
+export type FooterBillCall = TableCall & {
+  dismissalKey: string;
+};
+
 type Props = {
-  calls: TableCall[];
+  calls: FooterBillCall[];
   dismissedCallIds: string[];
-  onDismiss: (callId: string) => void;
+  onDismiss: (dismissalKey: string) => void;
 };
 
 export function BillCallFooter({ calls, dismissedCallIds, onDismiss }: Props) {
   const visibleCalls = calls.filter(
-    (call) => call != null && call.id != null && !dismissedCallIds.includes(call.id)
+    (call) =>
+      call != null && call.id != null && !dismissedCallIds.includes(call.dismissalKey)
   );
 
   return (
@@ -64,8 +69,8 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss }: Props) {
               >
                 <button
                   type="button"
-                  aria-label={`Dismiss call ${call.id}`}
-                  onClick={() => onDismiss(call.id)}
+                  aria-label={`Dismiss call ${call.dismissalKey}`}
+                  onClick={() => onDismiss(call.dismissalKey)}
                   style={{
                     position: "absolute",
                     top: "6px",

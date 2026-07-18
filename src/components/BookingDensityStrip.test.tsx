@@ -65,9 +65,15 @@ describe("BookingDensityStrip", () => {
       "data-density-tone",
       "red"
     );
+    expect(screen.getByTestId("booking-pressure-0-30-19:00")).toHaveTextContent("10");
+    expect(screen.getByTestId("booking-pressure-0-30-19:00")).toHaveAttribute(
+      "title",
+      "0-30m 19:00: 5 bookings, 10 covers"
+    );
     expect(screen.getByTestId("booking-pressure-30-60-19:30")).toHaveAttribute(
       "data-density-tone",
       "red"
     );
+    expect(screen.getByTestId("booking-pressure-30-60-19:30")).toHaveTextContent("10");
   });
 });

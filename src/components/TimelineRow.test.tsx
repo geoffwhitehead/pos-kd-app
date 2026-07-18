@@ -66,7 +66,19 @@ describe("TimelineRow", () => {
             openedAt: "2026-07-18T18:10:00Z",
             foodOrderedAt: "2026-07-18T18:20:00Z",
             calledAt: "2026-07-18T18:35:00Z",
-            endsAt: "2026-07-18T18:42:10Z"
+            endsAt: "2026-07-18T18:42:10Z",
+            tableCalls: [
+              {
+                id: "call_1",
+                displayRef: "12",
+                calledAt: "2026-07-18T18:35:00Z"
+              },
+              {
+                id: "call_2",
+                displayRef: "12",
+                calledAt: "2026-07-18T18:38:00Z"
+              }
+            ]
           }
         }}
         timeline={sampleKitchenDisplayResponse.timeline}
@@ -77,7 +89,8 @@ describe("TimelineRow", () => {
     expect(screen.getByTestId("live-segment-active-12")).toBeInTheDocument();
     expect(screen.getByTestId("live-segment-food_ordered-12")).toBeInTheDocument();
     expect(screen.queryByTestId("live-segment-called-12")).not.toBeInTheDocument();
-    expect(screen.getByTestId("live-call-marker-12")).toBeInTheDocument();
+    expect(screen.getByTestId("live-call-marker-12-call_1")).toBeInTheDocument();
+    expect(screen.getByTestId("live-call-marker-12-call_2")).toBeInTheDocument();
     expect(screen.queryByLabelText(/called bell/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/^called$/i)).not.toBeInTheDocument();
     expect(

@@ -12,6 +12,20 @@ type Props = {
     startIso?: string;
     endIso?: string;
   };
+  layout?: {
+    rowLabelWidth: number;
+    rowGap: number;
+    rowHeight: number;
+    bookingTop: number;
+    bookingHeight: number;
+    liveTop: number;
+    liveHeight: number;
+    bookingFontSize: number;
+    liveFontSize: number;
+    rowLabelFontSize: number;
+    livePaddingX: number;
+    bookingPaddingX: number;
+  };
   onSelect: (displayRef: string) => void;
 };
 
@@ -100,16 +114,29 @@ function buildRelativeSegmentStyle(
   };
 }
 
-export function TimelineRow({ row, timeline, onSelect }: Props) {
+const DEFAULT_LAYOUT = {
+  rowLabelWidth: 56,
+  rowGap: 8,
+  rowHeight: 34,
+  bookingTop: 7,
+  bookingHeight: 20,
+  liveTop: 5,
+  liveHeight: 24,
+  bookingFontSize: 12,
+  liveFontSize: 12,
+  rowLabelFontSize: 14,
+  livePaddingX: 8,
+  bookingPaddingX: 8
+} as const;
+
+export function TimelineRow({ row, timeline, layout = DEFAULT_LAYOUT, onSelect }: Props) {
   const serviceDate = timeline.serviceDate ?? timeline.now.slice(0, 10);
   const timelineSlots =
     timeline.startIso && timeline.endIso
       ? buildTimelineSlotsForWindow(timeline.startIso, timeline.endIso)
       : buildTimelineSlots(timeline.startHour, timeline.endHour);
   const intervalCount = Math.max(timelineSlots.length - 1, 1);
-  const firstSlot = timelineSlots[0] ?? "00:00";
-  const hourDividerOffset = firstSlot.endsWith(":30") ? 1 : 0;
-  const hourDividerCount = Math.max(Math.ceil((intervalCount + hourDividerOffset) / 2), 1);
+  const lastIndex = Math.max(timelineSlots.length - 1, 1);
   const bounds = {
     startHour: timeline.startHour,
     endHour: timeline.endHour,
@@ -119,6 +146,7 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
   };
   const liveOverlay = row.liveOverlay;
   const liveSegments = buildLiveSegments(row.liveOverlay);
+  const liveCallTimes = liveOverlay?.tableCalls ?? [];
   const mainsCount =
     liveOverlay?.categorySummary.find((summary) => summary.label === "Mains")?.count ?? 0;
   const liveLabel = mainsCount > 0 ? String(mainsCount) : "";
@@ -127,23 +155,40 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
     <div
       style={{
         display: "grid",
-        gridTemplateColumns: "56px minmax(0, 1fr)",
-        gap: "8px",
+        gridTemplateColumns: `${layout.rowLabelWidth}px minmax(0, 1fr)`,
+        gap: `${layout.rowGap}px`,
         alignItems: "center"
       }}
     >
-      <strong style={{ fontSize: "14px" }}>{row.tableRef}</strong>
+      <strong style={{ fontSize: `${layout.rowLabelFontSize}px` }}>{row.tableRef}</strong>
       <div
         style={{
           position: "relative",
-          minHeight: "34px",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.08) 0 1px, transparent 1px 100%), linear-gradient(to right, rgba(255,255,255,0.16) 0 1px, transparent 1px 100%)",
-          backgroundSize: `${100 / intervalCount}% 100%, ${100 / hourDividerCount}% 100%`,
-          backgroundPosition: `left top, ${hourDividerOffset === 0 ? "left" : `${50 / intervalCount}%`} top`
+          minHeight: `${layout.rowHeight}px`,
+          borderBottom: "1px solid rgba(255,255,255,0.06)"
         }}
       >
+        {timelineSlots.slice(1).map((slot, index) => {
+          const slotIndex = index + 1;
+          const isHourDivider = slot.endsWith(":00");
+
+          return (
+            <span
+              key={`divider-${slot}-${slotIndex}`}
+              aria-hidden="true"
+              style={{
+                position: "absolute",
+                insetBlock: 0,
+                left: `${(slotIndex / lastIndex) * 100}%`,
+                width: "1px",
+                background: isHourDivider
+                  ? "rgba(255,255,255,0.16)"
+                  : "rgba(255,255,255,0.08)",
+                pointerEvents: "none"
+              }}
+            />
+          );
+        })}
         {row.bookings.map((booking) => (
           row.liveOverlay ? (
             <button
@@ -153,21 +198,21 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
               style={{
                 ...buildSegmentStyle(booking.startsAt, booking.endsAt, bounds),
                 position: "absolute",
-                top: "7px",
-                height: "20px",
+                top: `${layout.bookingTop}px`,
+                height: `${layout.bookingHeight}px`,
                 border: "1px solid rgba(255,255,255,0.06)",
                 borderRadius: "6px",
                 background: "rgba(90, 93, 100, 0.42)",
                 color: "rgba(255,255,255,0.72)",
-                padding: "0 8px",
+                padding: `0 ${layout.bookingPaddingX}px`,
                 textAlign: "left"
               }}
               aria-label={`Booking ${booking.label} on table ${row.displayRef}`}
             >
               <span
                 style={{
-                  fontSize: "12px",
-                  lineHeight: "20px",
+                  fontSize: `${layout.bookingFontSize}px`,
+                  lineHeight: `${layout.bookingHeight}px`,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -183,21 +228,21 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
               style={{
                 ...buildSegmentStyle(booking.startsAt, booking.endsAt, bounds),
                 position: "absolute",
-                top: "7px",
-                height: "20px",
+                top: `${layout.bookingTop}px`,
+                height: `${layout.bookingHeight}px`,
                 border: "1px solid rgba(255,255,255,0.06)",
                 borderRadius: "6px",
                 background: "rgba(90, 93, 100, 0.42)",
                 color: "rgba(255,255,255,0.72)",
-                padding: "0 8px",
+                padding: `0 ${layout.bookingPaddingX}px`,
                 textAlign: "left"
               }}
               aria-label={`Booking ${booking.label} on table ${row.displayRef}`}
             >
               <span
                 style={{
-                  fontSize: "12px",
-                  lineHeight: "20px",
+                  fontSize: `${layout.bookingFontSize}px`,
+                  lineHeight: `${layout.bookingHeight}px`,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -216,8 +261,8 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
             style={{
               ...buildSegmentStyle(liveOverlay.startsAt, liveOverlay.endsAt, bounds),
               position: "absolute",
-              top: "5px",
-              height: "24px",
+              top: `${layout.liveTop}px`,
+              height: `${layout.liveHeight}px`,
               border: "1px solid rgba(255,255,255,0.16)",
               borderRadius: "7px",
               background: "rgba(18, 23, 20, 0.18)",
@@ -226,7 +271,7 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
               alignItems: "center",
               justifyContent: "center",
               gap: "6px",
-              padding: "0 8px",
+              padding: `0 ${layout.livePaddingX}px`,
               textAlign: "center",
               boxShadow: "0 6px 18px rgba(0,0,0,0.18)"
             }}
@@ -254,13 +299,14 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
                 }}
               />
             ))}
-            {liveOverlay.calledAt ? (
+            {liveCallTimes.map((call) => (
               <span
-                data-testid={`live-call-marker-${row.displayRef}`}
+                key={call.id}
+                data-testid={`live-call-marker-${row.displayRef}-${call.id}`}
                 style={{
                   ...buildRelativeSegmentStyle(
-                    liveOverlay.calledAt,
-                    liveOverlay.calledAt,
+                    call.calledAt,
+                    call.calledAt,
                     liveOverlay.startsAt,
                     liveOverlay.endsAt,
                     bounds
@@ -272,11 +318,11 @@ export function TimelineRow({ row, timeline, onSelect }: Props) {
                   boxShadow: "0 0 0 1px rgba(216, 74, 63, 0.22), 0 0 8px rgba(216, 74, 63, 0.35)"
                 }}
               />
-            ) : null}
+            ))}
             <span
               style={{
                 position: "relative",
-                fontSize: "12px",
+                fontSize: `${layout.liveFontSize}px`,
                 fontWeight: 600,
                 whiteSpace: "nowrap",
                 display: "inline-flex",

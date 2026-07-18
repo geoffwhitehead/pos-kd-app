@@ -143,4 +143,68 @@ describe("useKitchenDisplayPolling", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(initialCallCount + 1);
   });
+
+  it("does not fetch during quiet hours between 23:00 and 10:00 service time", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T23:30:00+01:00"));
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers(),
+      json: async () => sampleKitchenDisplayResponse
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() =>
+      useKitchenDisplayPolling({
+        accessToken: "access_123",
+        refreshToken: "refresh_456"
+      })
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+      await vi.advanceTimersByTimeAsync(15_000);
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it("polls normally during service hours", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T10:30:00+01:00"));
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers(),
+      json: async () => sampleKitchenDisplayResponse
+    });
+
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderHook(() =>
+      useKitchenDisplayPolling({
+        accessToken: "access_123",
+        refreshToken: "refresh_456"
+      })
+    );
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

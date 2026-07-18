@@ -1,14 +1,18 @@
-import { useState } from "react";
-import { BillCallFooter } from "../components/BillCallFooter";
+import { useEffect, useMemo, useState } from "react";
+import { BillCallFooter, type FooterBillCall } from "../components/BillCallFooter";
 import { OrderDetailDrawer } from "../components/OrderDetailDrawer";
 import { OrderLane } from "../components/OrderLane";
 import { ServiceBoard } from "../components/ServiceBoard";
 import { SystemWarningBanner } from "../components/SystemWarningBanner";
 import { getServiceStats } from "../lib/boardStats";
+import { formatShortTime } from "../lib/format";
 import { sortActiveOrders, sortServiceBoardRows } from "../lib/sort";
+import { getServiceDateString } from "../lib/time";
 import type {
   ActiveOrderCard,
-  KitchenDisplayResponse
+  KitchenDisplayResponse,
+  RetainedActiveOrder,
+  ServiceBoardRow
 } from "../types/kitchenDisplay";
 import styles from "./KitchenDisplayScreen.module.css";
 
@@ -35,25 +39,159 @@ function findSelectedOrder(
   );
 }
 
-function getBillCalls(data: KitchenDisplayResponse | null) {
+function getBillCalls(data: KitchenDisplayResponse | null): FooterBillCall[] {
   return [...(data?.activeOrders.inHouse ?? [])]
-    .flatMap((order) => order.tableCalls ?? [])
-    .filter((call) => call != null && call.id != null && call.calledAt != null)
+    .flatMap((order) =>
+      (order.tableCalls ?? []).map((call) => ({
+        ...call,
+        dismissalKey: `${order.billId}:${call.id}`
+      }))
+    )
+    .filter(
+      (call) =>
+        call != null &&
+        call.id != null &&
+        call.calledAt != null &&
+        call.dismissalKey.length > 0
+    )
     .sort((left, right) => new Date(left.calledAt).getTime() - new Date(right.calledAt).getTime());
+}
+
+function getRowForOrder(rows: ServiceBoardRow[], order: ActiveOrderCard) {
+  return (
+    rows.find((row) => row.liveOverlay?.billId === order.billId) ??
+    rows.find((row) => row.displayRef === order.displayRef) ??
+    null
+  );
+}
+
+function inferOrderCovers(row: ServiceBoardRow | null, order: ActiveOrderCard) {
+  if (row == null || row.liveOverlay == null) {
+    return 0;
+  }
+
+  const overlappingBooking = row.bookings.find((booking) => {
+    const bookingStart = new Date(booking.startsAt).getTime();
+    const bookingEnd = new Date(booking.endsAt).getTime();
+    const orderStart = new Date(order.createdAt).getTime();
+
+    return bookingStart <= orderStart && bookingEnd >= orderStart;
+  });
+
+  return overlappingBooking?.covers ?? 0;
+}
+
+function buildRetainedOrders(data: KitchenDisplayResponse | null): RetainedActiveOrder[] {
+  if (data == null) {
+    return [];
+  }
+
+  const serviceDate = getServiceDateString(data.timeline.now);
+
+  return data.activeOrders.inHouse.map((order) => {
+    const row = getRowForOrder(data.tables, order);
+    const liveOverlay =
+      row?.liveOverlay ?? {
+        billId: order.billId,
+        displayRef: order.displayRef,
+        status: order.status,
+        startsAt: order.createdAt,
+        endsAt: order.updatedAt,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        openedAt: order.createdAt,
+        foodOrderedAt: null,
+        calledAt: null,
+        tableCalls: order.tableCalls,
+        categorySummary: order.categorySummary,
+        hasBookingMatch: false
+      };
+
+    return {
+      billId: order.billId,
+      displayRef: order.displayRef,
+      tableRef: row?.tableRef ?? order.displayRef,
+      floor: row?.floor ?? "Service Floor",
+      serviceDate,
+      inferredCovers: inferOrderCovers(row, order),
+      order,
+      liveOverlay
+    };
+  });
+}
+
+function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActiveOrder[]) {
+  const rowsByDisplayRef = new Map(rows.map((row) => [row.displayRef, row]));
+  const mergedRows = [...rows];
+
+  for (const retainedOrder of retainedOrders) {
+    const existingRow = rowsByDisplayRef.get(retainedOrder.displayRef);
+
+    if (existingRow) {
+      if (existingRow.liveOverlay == null) {
+        existingRow.liveOverlay = retainedOrder.liveOverlay;
+      }
+
+      continue;
+    }
+
+    mergedRows.push({
+      displayRef: retainedOrder.displayRef,
+      tableRef: retainedOrder.tableRef,
+      floor: retainedOrder.floor,
+      bookings: [],
+      liveOverlay: retainedOrder.liveOverlay
+    });
+  }
+
+  return mergedRows;
 }
 
 export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
   const [selectedDisplayRef, setSelectedDisplayRef] = useState<string | null>(null);
   const [dismissedCallIds, setDismissedCallIds] = useState<string[]>([]);
+  const [retainedOrders, setRetainedOrders] = useState<RetainedActiveOrder[]>(() =>
+    buildRetainedOrders(data)
+  );
   const selectedOrder = findSelectedOrder(data, selectedDisplayRef);
   const currentTime = data?.timeline.now ?? new Date().toISOString();
-  const boardRows = sortServiceBoardRows(data?.tables ?? []);
-  const stats = getServiceStats(data);
-  const billCalls = getBillCalls(data);
+  const serviceDate = getServiceDateString(currentTime);
+  const currentRetainedOrders = useMemo(() => buildRetainedOrders(data), [data]);
+  const boardRows = useMemo(
+    () => sortServiceBoardRows(mergeRetainedRows(data?.tables ?? [], retainedOrders)),
+    [data, retainedOrders]
+  );
+  const stats = getServiceStats(data, retainedOrders);
+  const billCalls = useMemo(() => getBillCalls(data), [data]);
+  const liveDismissalKeys = useMemo(
+    () => new Set(billCalls.map((call) => call.dismissalKey)),
+    [billCalls]
+  );
 
-  function dismissBillCall(callId: string) {
+  useEffect(() => {
+    setRetainedOrders((currentOrders) => {
+      const currentServiceOrders = currentOrders.filter((order) => order.serviceDate === serviceDate);
+      const nextOrdersByBillId = new Map(currentServiceOrders.map((order) => [order.billId, order]));
+
+      for (const retainedOrder of currentRetainedOrders) {
+        nextOrdersByBillId.set(retainedOrder.billId, retainedOrder);
+      }
+
+      return [...nextOrdersByBillId.values()];
+    });
+  }, [currentRetainedOrders, serviceDate]);
+
+  useEffect(() => {
+    setDismissedCallIds((currentIds) => {
+      const nextIds = currentIds.filter((dismissalKey) => liveDismissalKeys.has(dismissalKey));
+
+      return nextIds.length === currentIds.length ? currentIds : nextIds;
+    });
+  }, [liveDismissalKeys]);
+
+  function dismissBillCall(dismissalKey: string) {
     setDismissedCallIds((currentIds) =>
-      currentIds.includes(callId) ? currentIds : [...currentIds, callId]
+      currentIds.includes(dismissalKey) ? currentIds : [...currentIds, dismissalKey]
     );
   }
 
@@ -63,10 +201,12 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
         <div className={styles.statCard}>
           <span className={styles.statLabel}>Total Bookings</span>
           <strong className={styles.statValue}>{stats.totalBookings}</strong>
+          <span className={styles.statMeta}>{stats.totalBookingsRemaining} remaining</span>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statLabel}>Total Covers</span>
           <strong className={styles.statValue}>{stats.totalCovers}</strong>
+          <span className={styles.statMeta}>{stats.totalCoversRemaining} remaining</span>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statLabel}>Active Tables</span>
@@ -77,12 +217,27 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
           <strong className={styles.statValue}>{stats.kitchenCheques}</strong>
         </div>
         <div className={styles.statCard}>
+          <span className={styles.statLabel}>Ordering Soon</span>
+          <strong className={styles.statValue}>{stats.orderingSoonTables}</strong>
+          <span className={styles.statMeta}>{stats.orderingSoonCovers} covers</span>
+        </div>
+        <div className={styles.statCard}>
           <span className={styles.statLabel}>Due In Next 30</span>
-          <strong className={styles.statValue}>{stats.dueNext30}</strong>
+          <strong className={styles.statValue}>{stats.dueNext30.tables}</strong>
+          <span className={styles.statMeta}>{stats.dueNext30.covers} covers</span>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statLabel}>Due In 60 Min</span>
+          <strong className={styles.statValue}>{stats.dueIn60.tables}</strong>
+          <span className={styles.statMeta}>{stats.dueIn60.covers} covers</span>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statLabel}>Takeaway Live</span>
           <strong className={styles.statValue}>{stats.takeawayLive}</strong>
+        </div>
+        <div className={`${styles.statCard} ${styles.clockCard}`}>
+          <span className={styles.statLabel}>Time</span>
+          <strong className={styles.statValue}>{formatShortTime(currentTime)}</strong>
         </div>
       </section>
 
@@ -112,7 +267,7 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
           ) : (
             <>
               <OrderLane
-                title="In House"
+                title="Eat-In"
                 orders={sortActiveOrders(data?.activeOrders.inHouse ?? [])}
                 currentTime={currentTime}
                 onSelect={setSelectedDisplayRef}

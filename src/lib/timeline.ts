@@ -63,8 +63,13 @@ export function buildVisibleBoardTimeline(
 ) {
   const serviceDate = getServiceDateString(timeline.now);
   const dayEndIso = localTimeOnServiceDateToIso(serviceDate, timeline.endHour);
+  const nowMs = new Date(timeline.now).getTime();
   const earliestActiveStartIso = rows
-    .flatMap((row) => (row.liveOverlay ? [row.liveOverlay.startsAt] : []))
+    .flatMap((row) =>
+      row.liveOverlay && new Date(row.liveOverlay.endsAt).getTime() >= nowMs
+        ? [row.liveOverlay.startsAt]
+        : []
+    )
     .sort()[0];
   const visibleStartCandidate =
     earliestActiveStartIso && earliestActiveStartIso < timeline.now

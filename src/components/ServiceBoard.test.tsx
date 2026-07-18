@@ -68,4 +68,16 @@ describe("ServiceBoard", () => {
     expect(screen.getByTestId("booking-pressure-30-60-19:30")).toHaveAttribute("data-density-tone", "grey");
     expect(screen.getByTestId("booking-pressure-0-30-20:00")).toHaveAttribute("data-density-tone", "grey");
   });
+
+  it("renders a board-wide current time line", () => {
+    render(
+      <ServiceBoard
+        rows={sampleKitchenDisplayResponse.tables}
+        timeline={sampleKitchenDisplayResponse.timeline}
+        onSelect={() => {}}
+      />
+    );
+
+    expect(screen.getByTestId("service-board-now-line")).toBeInTheDocument();
+  });
 });

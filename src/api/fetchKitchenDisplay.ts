@@ -201,6 +201,7 @@ function toLiveOverlay(
     openedAt,
     foodOrderedAt,
     calledAt,
+    tableCalls: toTableCalls(order),
     categorySummary: summarizeCategories(kitchenItems),
     hasBookingMatch: false
   };

@@ -49,6 +49,7 @@ export type LiveTableOverlay = {
   openedAt: string;
   foodOrderedAt: string | null;
   calledAt: string | null;
+  tableCalls: TableCall[];
   categorySummary: PrintCategorySummary[];
   hasBookingMatch: boolean;
 };
@@ -66,6 +67,17 @@ export type ActiveOrderCard = {
   categorySummary: PrintCategorySummary[];
   items: KitchenItem[];
   tableCalls: TableCall[];
+};
+
+export type RetainedActiveOrder = {
+  billId: string;
+  displayRef: string;
+  tableRef: string;
+  floor: string;
+  serviceDate: string;
+  inferredCovers: number;
+  order: ActiveOrderCard;
+  liveOverlay: LiveTableOverlay;
 };
 
 export type ServiceBoardRow = {

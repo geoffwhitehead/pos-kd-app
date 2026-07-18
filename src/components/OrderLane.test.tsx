@@ -9,7 +9,7 @@ describe("OrderLane", () => {
 
     render(
       <OrderLane
-        title="In House"
+        title="Eat-In"
         orders={sampleKitchenDisplayResponse.activeOrders.inHouse}
         currentTime="2026-07-18T19:42:10Z"
         onSelect={onSelect}
@@ -35,7 +35,7 @@ describe("OrderLane", () => {
   it("moves cheques older than one hour into an older rail", () => {
     render(
       <OrderLane
-        title="In House"
+        title="Eat-In"
         currentTime="2026-07-18T19:42:10Z"
         orders={[
           sampleKitchenDisplayResponse.activeOrders.inHouse[0]!,

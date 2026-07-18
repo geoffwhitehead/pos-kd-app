@@ -76,6 +76,7 @@ describe("timeline helpers", () => {
               openedAt: "2026-07-18T18:10:00Z",
               foodOrderedAt: "2026-07-18T18:10:00Z",
               calledAt: null,
+              tableCalls: [],
               categorySummary: [],
               hasBookingMatch: false
             }

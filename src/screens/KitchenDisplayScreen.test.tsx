@@ -20,16 +20,22 @@ describe("KitchenDisplayScreen", () => {
     expect(within(statsBar).getByText(/total covers/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/active tables/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/kitchen cheques/i)).toBeInTheDocument();
+    expect(within(statsBar).getByText(/ordering soon/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/due in next 30/i)).toBeInTheDocument();
+    expect(within(statsBar).getByText(/due in 60 min/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/takeaway live/i)).toBeInTheDocument();
+    expect(within(statsBar).getByText(/time/i)).toBeInTheDocument();
     expect(within(statsBar).getByText("8")).toBeInTheDocument();
-    expect(within(statsBar).getAllByText("2")).toHaveLength(2);
-    expect(within(statsBar).getAllByText("1")).toHaveLength(2);
-    expect(within(statsBar).getByText("0")).toBeInTheDocument();
+    expect(within(statsBar).getByText("2")).toBeInTheDocument();
+    expect(within(statsBar).getByText("19:42")).toBeInTheDocument();
+    expect(within(statsBar).getAllByText("0 covers")).toHaveLength(3);
+    expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();
+    expect(within(statsBar).getByText("4 remaining")).toBeInTheDocument();
+    expect(within(statsBar).getAllByText("0")).toHaveLength(2);
     expect(screen.queryByRole("heading", { name: /service board/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /active orders/i })).not.toBeInTheDocument();
     expect(screen.getByLabelText(/timeline axis/i)).toBeInTheDocument();
-    const inHouseLane = screen.getByLabelText("In House");
+    const inHouseLane = screen.getByLabelText("Eat-In");
     const billCalls = screen.getByLabelText(/bill calls/i);
 
     expect(within(inHouseLane).getByText(/fish and chips/i)).toBeInTheDocument();
@@ -65,13 +71,96 @@ describe("KitchenDisplayScreen", () => {
       />
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /dismiss call call_12_1/i }));
+    fireEvent.click(screen.getByRole("button", { name: /dismiss call bill_abc123:call_12_1/i }));
 
     const billCalls = screen.getByLabelText(/bill calls/i);
 
     expect(billCalls).toBeInTheDocument();
     expect(within(billCalls).queryByText("Table 12")).not.toBeInTheDocument();
     expect(within(billCalls).getByText(/no bill calls/i)).toBeInTheDocument();
+  });
+
+  it("shows a new bill call for the same table after the previous dismissed instance disappears", () => {
+    const { rerender } = render(
+      <KitchenDisplayScreen
+        data={sampleKitchenDisplayResponse}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /dismiss call bill_abc123:call_12_1/i }));
+
+    rerender(
+      <KitchenDisplayScreen
+        data={{
+          ...sampleKitchenDisplayResponse,
+          activeOrders: {
+            ...sampleKitchenDisplayResponse.activeOrders,
+            inHouse: sampleKitchenDisplayResponse.activeOrders.inHouse.map((order) =>
+              order.billId === "bill_abc123"
+                ? {
+                    ...order,
+                    billId: "bill_12_second",
+                    tableCalls: [
+                      {
+                        id: "call_12_1",
+                        displayRef: "12",
+                        calledAt: "2026-07-18T20:05:00Z"
+                      }
+                    ]
+                  }
+                : order
+            )
+          }
+        }}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    const billCalls = screen.getByLabelText(/bill calls/i);
+
+    expect(within(billCalls).getByText("Table 12")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /dismiss call bill_12_second:call_12_1/i })
+    ).toBeInTheDocument();
+  });
+
+  it("keeps same-day live table cells on the planner after live active orders disappear", () => {
+    const { rerender } = render(
+      <KitchenDisplayScreen
+        data={sampleKitchenDisplayResponse}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    rerender(
+      <KitchenDisplayScreen
+        data={{
+          ...sampleKitchenDisplayResponse,
+          tables: sampleKitchenDisplayResponse.tables.map((row) => ({
+            ...row,
+            liveOverlay: null
+          })),
+          activeOrders: {
+            ...sampleKitchenDisplayResponse.activeOrders,
+            inHouse: []
+          }
+        }}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    const statsBar = screen.getByLabelText(/service stats/i);
+
+    expect(screen.getByRole("button", { name: /live order 12/i })).toBeInTheDocument();
+    expect(within(statsBar).getByText(/total bookings/i)).toBeInTheDocument();
+    expect(within(statsBar).getByText("2")).toBeInTheDocument();
+    expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();
+    expect(screen.getByLabelText("Eat-In")).toHaveTextContent(/no active orders/i);
   });
 
   it("opens the full cheque when a booking with an active order is clicked", () => {

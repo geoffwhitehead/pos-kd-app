@@ -35,6 +35,7 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         openedAt: "2026-07-18T18:10:00Z",
         foodOrderedAt: "2026-07-18T18:10:00Z",
         calledAt: null,
+        tableCalls: [],
         categorySummary: [
           {
             key: "starters",
@@ -66,6 +67,7 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         openedAt: "2026-07-18T18:22:10Z",
         foodOrderedAt: null,
         calledAt: null,
+        tableCalls: [],
         categorySummary: [
           {
             key: "sides",

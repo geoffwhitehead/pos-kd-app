@@ -53,10 +53,10 @@ describe("boardStats", () => {
     );
 
     expect(pressure).toEqual([
-      { slot: "19:00", starters: 1, mains: 1 },
-      { slot: "19:30", starters: 1, mains: 1 },
-      { slot: "20:00", starters: 0, mains: 1 },
-      { slot: "20:30", starters: 0, mains: 0 }
+      { slot: "19:00", starters: 1, starterCovers: 2, mains: 1, mainCovers: 3 },
+      { slot: "19:30", starters: 1, starterCovers: 4, mains: 1, mainCovers: 2 },
+      { slot: "20:00", starters: 0, starterCovers: 0, mains: 1, mainCovers: 4 },
+      { slot: "20:30", starters: 0, starterCovers: 0, mains: 0, mainCovers: 0 }
     ]);
   });
 
@@ -96,6 +96,7 @@ describe("boardStats", () => {
             openedAt: "2026-07-18T18:10:00Z",
             foodOrderedAt: "2026-07-18T18:10:00Z",
             calledAt: null,
+            tableCalls: [],
             categorySummary: [],
             hasBookingMatch: true
           }
@@ -124,6 +125,7 @@ describe("boardStats", () => {
             openedAt: "2026-07-18T18:20:00Z",
             foodOrderedAt: null,
             calledAt: null,
+            tableCalls: [],
             categorySummary: [],
             hasBookingMatch: false
           }
@@ -211,7 +213,168 @@ describe("boardStats", () => {
       activeTables: 2,
       kitchenCheques: 2,
       takeawayLive: 1,
-      dueNext30: 6
+      dueNext30: {
+        tables: 2,
+        covers: 6
+      },
+      dueIn60: {
+        tables: 3,
+        covers: 12
+      },
+      orderingSoonTables: 1,
+      orderingSoonCovers: 0
+    });
+  });
+
+  it("combines board bookings with same-day retained table history for totals and remaining counts", () => {
+    const stats = getServiceStats(
+      {
+        generatedAt: "2026-07-18T18:42:10Z",
+        warnings: [],
+        bookingsStatus: "ok",
+        liveOrdersStatus: "ok",
+        timeline: {
+          startHour: 12,
+          endHour: 22,
+          now: "2026-07-18T18:42:10Z"
+        },
+        tables: [
+          {
+            displayRef: "12",
+            tableRef: "12",
+            floor: "Ground Floor",
+            bookings: [
+              {
+                id: "booking_12_1",
+                label: "Walker",
+                covers: 4,
+                startsAt: "2026-07-18T18:00:00Z",
+                endsAt: "2026-07-18T19:30:00Z"
+              }
+            ],
+            liveOverlay: null
+          },
+          {
+            displayRef: "16",
+            tableRef: "16",
+            floor: "Ground Floor",
+            bookings: [
+              {
+                id: "booking_16_1",
+                label: "Lesley",
+                covers: 4,
+                startsAt: "2026-07-18T20:00:00Z",
+                endsAt: "2026-07-18T21:30:00Z"
+              }
+            ],
+            liveOverlay: null
+          }
+        ],
+        activeOrders: {
+          inHouse: [
+            {
+              displayRef: "12",
+              serviceType: "dine_in",
+              billId: "bill_12",
+              billRef: "12",
+              bookingName: "Walker",
+              partyName: "Walker",
+              createdAt: "2026-07-18T18:10:00Z",
+              updatedAt: "2026-07-18T18:42:10Z",
+              status: "food_ordered",
+              categorySummary: [],
+              items: [],
+              tableCalls: []
+            }
+          ],
+          takeaway: [],
+          unassigned: []
+        }
+      },
+      [
+        {
+          billId: "bill_12",
+          displayRef: "12",
+          tableRef: "12",
+          floor: "Ground Floor",
+          serviceDate: "2026-07-18",
+          inferredCovers: 4,
+          order: {
+            displayRef: "12",
+            serviceType: "dine_in",
+            billId: "bill_12",
+            billRef: "12",
+            bookingName: "Walker",
+            partyName: "Walker",
+            createdAt: "2026-07-18T18:10:00Z",
+            updatedAt: "2026-07-18T18:42:10Z",
+            status: "food_ordered",
+            categorySummary: [],
+            items: [],
+            tableCalls: []
+          },
+          liveOverlay: {
+            billId: "bill_12",
+            displayRef: "12",
+            status: "food_ordered",
+            startsAt: "2026-07-18T18:10:00Z",
+            endsAt: "2026-07-18T18:42:10Z",
+            createdAt: "2026-07-18T18:10:00Z",
+            updatedAt: "2026-07-18T18:42:10Z",
+            openedAt: "2026-07-18T18:10:00Z",
+            foodOrderedAt: "2026-07-18T18:10:00Z",
+            calledAt: null,
+            tableCalls: [],
+            categorySummary: [],
+            hasBookingMatch: true
+          }
+        },
+        {
+          billId: "bill_walkin_15",
+          displayRef: "15",
+          tableRef: "15",
+          floor: "Ground Floor",
+          serviceDate: "2026-07-18",
+          inferredCovers: 0,
+          order: {
+            displayRef: "15",
+            serviceType: "dine_in",
+            billId: "bill_walkin_15",
+            billRef: "15",
+            bookingName: null,
+            partyName: null,
+            createdAt: "2026-07-18T18:22:10Z",
+            updatedAt: "2026-07-18T18:35:10Z",
+            status: "active",
+            categorySummary: [],
+            items: [],
+            tableCalls: []
+          },
+          liveOverlay: {
+            billId: "bill_walkin_15",
+            displayRef: "15",
+            status: "active",
+            startsAt: "2026-07-18T18:22:10Z",
+            endsAt: "2026-07-18T18:35:10Z",
+            createdAt: "2026-07-18T18:22:10Z",
+            updatedAt: "2026-07-18T18:35:10Z",
+            openedAt: "2026-07-18T18:22:10Z",
+            foodOrderedAt: null,
+            calledAt: null,
+            tableCalls: [],
+            categorySummary: [],
+            hasBookingMatch: false
+          }
+        }
+      ]
+    );
+
+    expect(stats).toMatchObject({
+      activeTables: 1,
+      totalBookings: 3,
+      totalBookingsRemaining: 1,
+      totalCovers: 8,
+      totalCoversRemaining: 4
     });
   });
 });

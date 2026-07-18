@@ -21,6 +21,11 @@
   gap: 4px;
 }
 
+.clockCard {
+  margin-left: auto;
+  min-width: 180px;
+}
+
 .statLabel {
   font-size: 12px;
   letter-spacing: 0.08em;
@@ -32,6 +37,13 @@
   font-size: 28px;
   line-height: 1;
   color: var(--color-text);
+}
+
+.statMeta {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-subtle);
 }
 
 .columns {
@@ -64,6 +76,10 @@
 }
 
 @media (max-width: 960px) {
+  .clockCard {
+    margin-left: 0;
+  }
+
   .columns {
     grid-template-columns: 1fr;
   }

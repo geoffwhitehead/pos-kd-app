@@ -35,7 +35,7 @@ const DENSITY_COLORS = {
 type PressureRowProps = {
   label: string;
   suffix: "0-30" | "30-60";
-  values: Array<{ slot: string; bookings: number }>;
+  values: Array<{ slot: string; bookings: number; covers: number }>;
 };
 
 function PressureRow({ label, suffix, values }: PressureRowProps) {
@@ -74,14 +74,24 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
               key={`${suffix}-${entry.slot}`}
               data-testid={`booking-pressure-${suffix}-${entry.slot}`}
               data-density-tone={tone}
-              title={`${label} ${entry.slot}: ${entry.bookings} bookings`}
+              title={`${label} ${entry.slot}: ${entry.bookings} bookings, ${entry.covers} covers`}
               style={{
-                height: "10px",
+                height: "16px",
                 borderRadius: "999px",
                 background: DENSITY_COLORS[tone],
-                boxShadow: tone === "grey" ? "inset 0 0 0 1px rgba(255,255,255,0.06)" : "none"
+                boxShadow: tone === "grey" ? "inset 0 0 0 1px rgba(255,255,255,0.06)" : "none",
+                color: "rgba(255,255,255,0.92)",
+                fontSize: "9px",
+                fontWeight: 700,
+                lineHeight: "16px",
+                textAlign: "center",
+                letterSpacing: "0.02em",
+                overflow: "hidden",
+                whiteSpace: "nowrap"
               }}
-            />
+            >
+              {entry.covers > 0 ? entry.covers : ""}
+            </span>
           );
         })}
       </div>
@@ -106,7 +116,8 @@ export function BookingDensityStrip({ rows, timeline }: Props) {
         suffix="0-30"
         values={pressure.map((entry) => ({
           slot: entry.slot,
-          bookings: entry.starters
+          bookings: entry.starters,
+          covers: entry.starterCovers
         }))}
       />
       <PressureRow
@@ -114,7 +125,8 @@ export function BookingDensityStrip({ rows, timeline }: Props) {
         suffix="30-60"
         values={pressure.map((entry) => ({
           slot: entry.slot,
-          bookings: entry.mains
+          bookings: entry.mains,
+          covers: entry.mainCovers
         }))}
       />
     </div>
