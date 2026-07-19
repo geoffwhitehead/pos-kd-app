@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Nomi Kitchen Display</title>
+  <desc id="desc">Dark square app icon with a stylised serving pass and three heat bars.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#182221" />
+      <stop offset="100%" stop-color="#0d1212" />
+    </linearGradient>
+    <linearGradient id="heat" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#efc15b" />
+      <stop offset="100%" stop-color="#cb5d3d" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <rect x="104" y="120" width="304" height="44" rx="22" fill="#f5efe1" opacity="0.94" />
+  <rect x="116" y="182" width="280" height="164" rx="36" fill="#243130" stroke="#4e6461" stroke-width="10" />
+  <rect x="146" y="214" width="42" height="102" rx="21" fill="url(#heat)" />
+  <rect x="235" y="196" width="42" height="120" rx="21" fill="url(#heat)" />
+  <rect x="324" y="226" width="42" height="90" rx="21" fill="url(#heat)" />
+  <rect x="128" y="362" width="256" height="28" rx="14" fill="#f5efe1" opacity="0.92" />
+  <circle cx="164" cy="404" r="16" fill="#cb5d3d" />
+  <circle cx="256" cy="404" r="16" fill="#efc15b" />
+  <circle cx="348" cy="404" r="16" fill="#5aa06e" />
+  <rect x="118" y="98" width="66" height="12" rx="6" fill="#efc15b" opacity="0.72" />
+  <rect x="196" y="98" width="120" height="12" rx="6" fill="#efc15b" opacity="0.42" />
+</svg>
