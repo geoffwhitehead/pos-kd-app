@@ -37,11 +37,15 @@ describe("KitchenDisplayScreen", () => {
     expect(screen.getByLabelText(/timeline axis/i)).toBeInTheDocument();
     const inHouseLane = screen.getByLabelText("Eat-In");
     const billCalls = screen.getByLabelText(/bill calls/i);
+    const reviews = screen.getByLabelText(/reviews/i);
 
     expect(within(inHouseLane).getByText(/fish and chips/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/booking pressure strips/i)).toBeInTheDocument();
     expect(billCalls).toBeInTheDocument();
     expect(within(billCalls).getByText("Table 12")).toBeInTheDocument();
+    expect(reviews).toBeInTheDocument();
+    expect(within(reviews).getByText(/cein mcgillicuddy/i)).toBeInTheDocument();
+    expect(screen.getByTestId("footer-rail")).toHaveStyle({ display: "flex" });
   });
 
   it("opens a read-only detail drawer when an order is tapped", () => {
@@ -201,5 +205,42 @@ describe("KitchenDisplayScreen", () => {
     expect(
       screen.getByText(/live till order data is unavailable/i)
     ).toBeInTheDocument();
+  });
+
+  it("renders mocked reviews in the footer and opens review detail in the right pane", () => {
+    render(
+      <KitchenDisplayScreen
+        data={sampleKitchenDisplayResponse}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    expect(screen.getByLabelText(/reviews/i)).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /open review by cein mcgillicuddy/i }));
+
+    const details = screen.getByLabelText(/review details/i);
+
+    expect(within(details).getByRole("heading", { name: /cein mcgillicuddy/i })).toBeInTheDocument();
+    expect(
+      within(details).getByText(/this is the best thai restaurant/i)
+    ).toBeInTheDocument();
+  });
+
+  it("replaces review detail with order detail when a live order is selected from the planner", () => {
+    render(
+      <KitchenDisplayScreen
+        data={sampleKitchenDisplayResponse}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /open review by cein mcgillicuddy/i }));
+    fireEvent.click(screen.getByRole("button", { name: /live order 12/i }));
+
+    expect(screen.queryByLabelText(/review details/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/order details/i)).toBeInTheDocument();
   });
 });

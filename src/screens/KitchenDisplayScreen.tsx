@@ -2,12 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { BillCallFooter, type FooterBillCall } from "../components/BillCallFooter";
 import { OrderDetailDrawer } from "../components/OrderDetailDrawer";
 import { OrderLane } from "../components/OrderLane";
+import { ReviewDetailDrawer } from "../components/ReviewDetailDrawer";
+import { ReviewsFooter } from "../components/ReviewsFooter";
 import { ServiceBoard } from "../components/ServiceBoard";
 import { SystemWarningBanner } from "../components/SystemWarningBanner";
 import { getServiceStats } from "../lib/boardStats";
 import { formatShortTime } from "../lib/format";
 import { sortActiveOrders, sortServiceBoardRows } from "../lib/sort";
+import { mockBoardReviews } from "../mocks/googleReviews";
 import { getServiceDateString } from "../lib/time";
+import type { BoardReview } from "../types/googleReviews";
 import type {
   ActiveOrderCard,
   KitchenDisplayResponse,
@@ -15,6 +19,11 @@ import type {
   ServiceBoardRow
 } from "../types/kitchenDisplay";
 import styles from "./KitchenDisplayScreen.module.css";
+
+type DetailSelection =
+  | null
+  | { type: "order"; displayRef: string }
+  | { type: "review"; reviewId: string };
 
 type Props = {
   data: KitchenDisplayResponse | null;
@@ -37,6 +46,14 @@ function findSelectedOrder(
       ...data.activeOrders.unassigned
     ].find((order) => order.displayRef === selectedDisplayRef) ?? null
   );
+}
+
+function findSelectedReview(reviews: BoardReview[], reviewId: string | null) {
+  if (reviewId == null) {
+    return null;
+  }
+
+  return reviews.find((review) => review.id === reviewId) ?? null;
 }
 
 function getBillCalls(data: KitchenDisplayResponse | null): FooterBillCall[] {
@@ -148,12 +165,20 @@ function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActi
 }
 
 export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
-  const [selectedDisplayRef, setSelectedDisplayRef] = useState<string | null>(null);
+  const [detailSelection, setDetailSelection] = useState<DetailSelection>(null);
   const [dismissedCallIds, setDismissedCallIds] = useState<string[]>([]);
   const [retainedOrders, setRetainedOrders] = useState<RetainedActiveOrder[]>(() =>
     buildRetainedOrders(data)
   );
-  const selectedOrder = findSelectedOrder(data, selectedDisplayRef);
+  const reviews = mockBoardReviews;
+  const selectedOrder =
+    detailSelection?.type === "order"
+      ? findSelectedOrder(data, detailSelection.displayRef)
+      : null;
+  const selectedReview =
+    detailSelection?.type === "review"
+      ? findSelectedReview(reviews, detailSelection.reviewId)
+      : null;
   const currentTime = data?.timeline.now ?? new Date().toISOString();
   const serviceDate = getServiceDateString(currentTime);
   const currentRetainedOrders = useMemo(() => buildRetainedOrders(data), [data]);
@@ -254,15 +279,17 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
                 now: new Date().toISOString()
               }
             }
-            onSelect={setSelectedDisplayRef}
+            onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
           />
         </section>
 
         <section aria-label="Active orders panel" className={`${styles.panel} ${styles.rightStack}`}>
-          {selectedOrder ? (
+          {selectedReview ? (
+            <ReviewDetailDrawer review={selectedReview} onClose={() => setDetailSelection(null)} />
+          ) : selectedOrder ? (
             <OrderDetailDrawer
               order={selectedOrder}
-              onClose={() => setSelectedDisplayRef(null)}
+              onClose={() => setDetailSelection(null)}
             />
           ) : (
             <>
@@ -270,20 +297,20 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
                 title="Eat-In"
                 orders={sortActiveOrders(data?.activeOrders.inHouse ?? [])}
                 currentTime={currentTime}
-                onSelect={setSelectedDisplayRef}
+                onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
               />
               <OrderLane
                 title="Takeaway"
                 orders={sortActiveOrders(data?.activeOrders.takeaway ?? [])}
                 currentTime={currentTime}
-                onSelect={setSelectedDisplayRef}
+                onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
               />
               {(data?.activeOrders.unassigned.length ?? 0) > 0 ? (
                 <OrderLane
                   title="Needs Review"
                   orders={sortActiveOrders(data?.activeOrders.unassigned ?? [])}
                   currentTime={currentTime}
-                  onSelect={setSelectedDisplayRef}
+                  onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
                 />
               ) : null}
             </>
@@ -291,11 +318,36 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
         </section>
       </section>
 
-      <BillCallFooter
-        calls={billCalls}
-        dismissedCallIds={dismissedCallIds}
-        onDismiss={dismissBillCall}
-      />
+      <section
+        data-testid="footer-rail"
+        style={{
+          marginTop: "14px",
+          display: "flex",
+          gap: "12px",
+          alignItems: "stretch",
+          minWidth: 0,
+          overflow: "hidden"
+        }}
+      >
+        <BillCallFooter
+          calls={billCalls}
+          dismissedCallIds={dismissedCallIds}
+          onDismiss={dismissBillCall}
+          style={{
+            flex: "1 1 108px",
+            minWidth: "108px"
+          }}
+        />
+        <ReviewsFooter
+          reviews={reviews}
+          onSelect={(reviewId) => setDetailSelection({ type: "review", reviewId })}
+          style={{
+            flex: "0 1 460px",
+            maxWidth: "460px",
+            minWidth: 0
+          }}
+        />
+      </section>
     </main>
   );
 }

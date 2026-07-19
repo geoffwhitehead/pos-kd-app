@@ -16,6 +16,9 @@ describe("useKitchenDisplayPolling", () => {
   });
 
   it("passes bearer and refresh headers to the board request", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T10:30:00+01:00"));
+
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers(),
@@ -31,20 +34,26 @@ describe("useKitchenDisplayPolling", () => {
       })
     );
 
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        "https://positive-server.herokuapp.com/api/kd/board",
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Authorization: "Bearer access_123",
-            "x-refresh-token": "refresh_456"
-          })
-        })
-      );
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
     });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://positive-server.herokuapp.com/api/kd/board",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer access_123",
+          "x-refresh-token": "refresh_456"
+        })
+      })
+    );
   });
 
   it("notifies auth failure on terminal unauthorized requests", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T10:30:00+01:00"));
+
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
@@ -69,13 +78,17 @@ describe("useKitchenDisplayPolling", () => {
       )
     );
 
-    await waitFor(() => {
-      expect(onAuthFailure).toHaveBeenCalled();
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
     });
+
+    expect(onAuthFailure).toHaveBeenCalled();
   });
 
   it("does not immediately refetch when session tokens are refreshed", async () => {
     vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T10:30:00+01:00"));
 
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

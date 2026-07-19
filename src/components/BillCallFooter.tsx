@@ -9,18 +9,21 @@ type Props = {
   calls: FooterBillCall[];
   dismissedCallIds: string[];
   onDismiss: (dismissalKey: string) => void;
+  style?: React.CSSProperties;
 };
 
-export function BillCallFooter({ calls, dismissedCallIds, onDismiss }: Props) {
+export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Props) {
   const visibleCalls = calls.filter(
     (call) =>
       call != null && call.id != null && !dismissedCallIds.includes(call.dismissalKey)
   );
 
   return (
-    <section aria-label="Bill calls" style={{ marginTop: "14px" }}>
+    <section aria-label="Bill calls" style={{ minWidth: 0, ...style }}>
       <div
         style={{
+          minWidth: 0,
+          height: "100%",
           padding: "12px 14px",
           border: "1px solid var(--color-border)",
           borderRadius: "18px",
@@ -47,7 +50,8 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss }: Props) {
             gridAutoColumns: "minmax(120px, max-content)",
             gap: "8px",
             overflowX: "auto",
-            paddingBottom: "2px"
+            paddingBottom: "2px",
+            alignItems: "stretch"
           }}
         >
           {visibleCalls.length > 0 ? (
