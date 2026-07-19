@@ -132,6 +132,13 @@ export function getServiceStats(
   const activeTables = data?.activeOrders.inHouse.length ?? 0;
   const kitchenCheques = data?.activeOrders.inHouse.length ?? 0;
   const takeawayLive = data?.activeOrders.takeaway.length ?? 0;
+  const cardTipsTotal = [
+    ...(data?.activeOrders.inHouse ?? []),
+    ...(data?.activeOrders.takeaway ?? []),
+    ...(data?.activeOrders.unassigned ?? [])
+  ].reduce((highestTotal, order) => {
+    return Math.max(highestTotal, order.billPeriodClosedServiceChargeTotal);
+  }, 0);
   const now = new Date(nowIso).getTime();
   const dueNext30 = rows.reduce(
     (totalsForWindow, row) => {
@@ -218,6 +225,7 @@ export function getServiceStats(
     activeTables,
     kitchenCheques,
     takeawayLive,
+    cardTipsTotal,
     dueNext30,
     dueIn60,
     orderingSoonTables: orderingSoon.tables,

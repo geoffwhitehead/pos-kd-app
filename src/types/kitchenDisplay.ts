@@ -63,6 +63,7 @@ export type ActiveOrderCard = {
   partyName: string | null;
   createdAt: string;
   updatedAt: string;
+  billPeriodClosedServiceChargeTotal: number;
   status: LiveTableStatus;
   categorySummary: PrintCategorySummary[];
   items: KitchenItem[];

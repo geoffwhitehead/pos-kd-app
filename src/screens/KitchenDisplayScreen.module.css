@@ -26,6 +26,14 @@
   min-width: 180px;
 }
 
+.tipsCard {
+  border-color: rgba(206, 156, 63, 0.55);
+  background: linear-gradient(180deg, rgba(61, 48, 21, 0.96), rgba(31, 25, 14, 0.96));
+  box-shadow:
+    0 0 0 1px rgba(236, 186, 76, 0.12),
+    0 18px 36px rgba(13, 16, 16, 0.34);
+}
+
 .statLabel {
   font-size: 12px;
   letter-spacing: 0.08em;

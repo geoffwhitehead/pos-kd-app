@@ -54,6 +54,7 @@ type LegacyOrder = {
   displayRef: string;
   serviceType: "dine_in" | "takeaway";
   billCreatedAt?: string;
+  billPeriodClosedServiceChargeTotal?: number;
   updatedAt: string;
   hasOpenBill: boolean;
   billCallLogs?: Array<{
@@ -224,6 +225,7 @@ function toActiveOrderCard(
     partyName: null,
     createdAt: order.billCreatedAt ?? order.updatedAt,
     updatedAt: order.updatedAt,
+    billPeriodClosedServiceChargeTotal: order.billPeriodClosedServiceChargeTotal ?? 0,
     status,
     categorySummary: summarizeCategories(order.items),
     items: toKitchenItems(order.items),

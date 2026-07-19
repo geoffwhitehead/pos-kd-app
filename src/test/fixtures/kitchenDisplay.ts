@@ -105,6 +105,7 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         partyName: "Walker",
         createdAt: "2026-07-18T18:10:00Z",
         updatedAt: "2026-07-18T18:42:10Z",
+        billPeriodClosedServiceChargeTotal: 184.2,
         status: "food_ordered",
         tableCalls: [
           {
@@ -176,6 +177,7 @@ export const sampleKitchenDisplayResponse: KitchenDisplayResponse = {
         partyName: "Sam",
         createdAt: "2026-07-18T18:30:10Z",
         updatedAt: "2026-07-18T18:45:10Z",
+        billPeriodClosedServiceChargeTotal: 184.2,
         status: "called",
         tableCalls: [],
         categorySummary: [

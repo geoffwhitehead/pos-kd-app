@@ -157,6 +157,7 @@ describe("boardStats", () => {
             partyName: "Walker",
             createdAt: "2026-07-18T18:10:00Z",
             updatedAt: "2026-07-18T18:42:10Z",
+            billPeriodClosedServiceChargeTotal: 184.2,
             status: "food_ordered",
             categorySummary: [],
             items: [
@@ -181,6 +182,7 @@ describe("boardStats", () => {
             partyName: null,
             createdAt: "2026-07-18T18:20:00Z",
             updatedAt: "2026-07-18T18:42:10Z",
+            billPeriodClosedServiceChargeTotal: 184.2,
             status: "active",
             categorySummary: [],
             items: [],
@@ -197,6 +199,7 @@ describe("boardStats", () => {
             partyName: "Sam",
             createdAt: "2026-07-18T18:30:10Z",
             updatedAt: "2026-07-18T18:45:10Z",
+            billPeriodClosedServiceChargeTotal: 183.5,
             status: "called",
             categorySummary: [],
             items: [],
@@ -221,6 +224,7 @@ describe("boardStats", () => {
         tables: 3,
         covers: 12
       },
+      cardTipsTotal: 184.2,
       orderingSoonTables: 1,
       orderingSoonCovers: 0
     });
@@ -281,6 +285,7 @@ describe("boardStats", () => {
               partyName: "Walker",
               createdAt: "2026-07-18T18:10:00Z",
               updatedAt: "2026-07-18T18:42:10Z",
+              billPeriodClosedServiceChargeTotal: 184.2,
               status: "food_ordered",
               categorySummary: [],
               items: [],
@@ -308,6 +313,7 @@ describe("boardStats", () => {
             partyName: "Walker",
             createdAt: "2026-07-18T18:10:00Z",
             updatedAt: "2026-07-18T18:42:10Z",
+            billPeriodClosedServiceChargeTotal: 184.2,
             status: "food_ordered",
             categorySummary: [],
             items: [],
@@ -345,6 +351,7 @@ describe("boardStats", () => {
             partyName: null,
             createdAt: "2026-07-18T18:22:10Z",
             updatedAt: "2026-07-18T18:35:10Z",
+            billPeriodClosedServiceChargeTotal: 184.2,
             status: "active",
             categorySummary: [],
             items: [],

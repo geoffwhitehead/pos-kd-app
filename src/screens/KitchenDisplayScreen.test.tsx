@@ -24,9 +24,12 @@ describe("KitchenDisplayScreen", () => {
     expect(within(statsBar).getByText(/due in next 30/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/due in 60 min/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/takeaway live/i)).toBeInTheDocument();
+    expect(within(statsBar).getByText(/card tips/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/time/i)).toBeInTheDocument();
     expect(within(statsBar).getByText("8")).toBeInTheDocument();
     expect(within(statsBar).getByText("2")).toBeInTheDocument();
+    expect(within(statsBar).getByText("£184.20")).toBeInTheDocument();
+    expect(within(statsBar).getByText(/closed bills today/i)).toBeInTheDocument();
     expect(within(statsBar).getByText("19:42")).toBeInTheDocument();
     expect(within(statsBar).getAllByText("0 covers")).toHaveLength(3);
     expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();

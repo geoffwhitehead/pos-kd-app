@@ -7,7 +7,7 @@ import { ReviewsFooter } from "../components/ReviewsFooter";
 import { ServiceBoard } from "../components/ServiceBoard";
 import { SystemWarningBanner } from "../components/SystemWarningBanner";
 import { getServiceStats } from "../lib/boardStats";
-import { formatShortTime } from "../lib/format";
+import { formatCurrency, formatShortTime } from "../lib/format";
 import { sortActiveOrders, sortServiceBoardRows } from "../lib/sort";
 import { mockBoardReviews } from "../mocks/googleReviews";
 import { getServiceDateString } from "../lib/time";
@@ -259,6 +259,11 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
         <div className={styles.statCard}>
           <span className={styles.statLabel}>Takeaway Live</span>
           <strong className={styles.statValue}>{stats.takeawayLive}</strong>
+        </div>
+        <div className={`${styles.statCard} ${styles.tipsCard}`}>
+          <span className={styles.statLabel}>Card Tips</span>
+          <strong className={styles.statValue}>{formatCurrency(stats.cardTipsTotal)}</strong>
+          <span className={styles.statMeta}>Closed bills today</span>
         </div>
         <div className={`${styles.statCard} ${styles.clockCard}`}>
           <span className={styles.statLabel}>Time</span>

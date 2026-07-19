@@ -44,6 +44,7 @@ describe("fetchKitchenDisplay", () => {
                 billRef: "12",
                 displayRef: "12",
                 serviceType: "dine_in",
+                billPeriodClosedServiceChargeTotal: 184.2,
                 updatedAt: "2026-07-18T16:12:00.000Z",
                 hasOpenBill: true,
                 items: [
@@ -102,7 +103,8 @@ describe("fetchKitchenDisplay", () => {
       displayRef: "12",
       bookingName: null,
       status: "active",
-      createdAt: "2026-07-18T16:12:00.000Z"
+      createdAt: "2026-07-18T16:12:00.000Z",
+      billPeriodClosedServiceChargeTotal: 184.2
     });
     expect(response.data.activeOrders.inHouse[0]?.categorySummary).toEqual([
       {
