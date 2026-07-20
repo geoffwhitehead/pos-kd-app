@@ -1,4 +1,6 @@
 export const SERVICE_TIME_ZONE = "Europe/London";
+export const SERVICE_HOURS_START = 10;
+export const SERVICE_HOURS_END = 23;
 
 type ZonedParts = {
   year: number;
@@ -76,4 +78,10 @@ export function formatServiceClockTime(value: string | Date) {
 
 export function getServiceHour(value: string | Date) {
   return getZonedParts(value).hour;
+}
+
+export function isWithinServiceHours(value: string | Date) {
+  const hour = getServiceHour(value);
+
+  return hour >= SERVICE_HOURS_START && hour < SERVICE_HOURS_END;
 }

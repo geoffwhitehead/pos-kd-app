@@ -10,7 +10,7 @@ import { getServiceStats } from "../lib/boardStats";
 import { formatCurrency, formatShortTime } from "../lib/format";
 import { sortActiveOrders, sortServiceBoardRows } from "../lib/sort";
 import { mockBoardReviews } from "../mocks/googleReviews";
-import { getServiceDateString } from "../lib/time";
+import { getServiceDateString, isWithinServiceHours } from "../lib/time";
 import type { BoardReview } from "../types/googleReviews";
 import type {
   ActiveOrderCard,
@@ -186,6 +186,7 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
     () => sortServiceBoardRows(mergeRetainedRows(data?.tables ?? [], retainedOrders)),
     [data, retainedOrders]
   );
+  const isOutsideServiceWindow = !isWithinServiceHours(currentTime);
   const stats = getServiceStats(data, retainedOrders);
   const billCalls = useMemo(() => getBillCalls(data), [data]);
   const liveDismissalKeys = useMemo(
@@ -222,137 +223,151 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
 
   return (
     <main className={styles.screen}>
-      <section className={styles.statsBar} aria-label="Service stats">
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Total Bookings</span>
-          <strong className={styles.statValue}>{stats.totalBookings}</strong>
-          <span className={styles.statMeta}>{stats.totalBookingsRemaining} remaining</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Total Covers</span>
-          <strong className={styles.statValue}>{stats.totalCovers}</strong>
-          <span className={styles.statMeta}>{stats.totalCoversRemaining} remaining</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Active Tables</span>
-          <strong className={styles.statValue}>{stats.activeTables}</strong>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Kitchen Cheques</span>
-          <strong className={styles.statValue}>{stats.kitchenCheques}</strong>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Ordering Soon</span>
-          <strong className={styles.statValue}>{stats.orderingSoonTables}</strong>
-          <span className={styles.statMeta}>{stats.orderingSoonCovers} covers</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Due In Next 30</span>
-          <strong className={styles.statValue}>{stats.dueNext30.tables}</strong>
-          <span className={styles.statMeta}>{stats.dueNext30.covers} covers</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Due In 60 Min</span>
-          <strong className={styles.statValue}>{stats.dueIn60.tables}</strong>
-          <span className={styles.statMeta}>{stats.dueIn60.covers} covers</span>
-        </div>
-        <div className={styles.statCard}>
-          <span className={styles.statLabel}>Takeaway Live</span>
-          <strong className={styles.statValue}>{stats.takeawayLive}</strong>
-        </div>
-        <div className={`${styles.statCard} ${styles.tipsCard}`}>
-          <span className={styles.statLabel}>Card Tips</span>
-          <strong className={styles.statValue}>{formatCurrency(stats.cardTipsTotal)}</strong>
-          <span className={styles.statMeta}>Closed bills today</span>
-        </div>
-        <div className={`${styles.statCard} ${styles.clockCard}`}>
-          <span className={styles.statLabel}>Time</span>
-          <strong className={styles.statValue}>{formatShortTime(currentTime)}</strong>
-        </div>
-      </section>
-
-      <SystemWarningBanner warnings={data?.warnings ?? []} error={error} />
-
-      <section className={styles.columns}>
-        <section aria-label="Service board panel" className={styles.panel}>
-          <ServiceBoard
-            rows={boardRows}
-            timeline={
-              data?.timeline ?? {
-                startHour: 12,
-                endHour: 22,
-                now: new Date().toISOString()
-              }
-            }
-            onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
-          />
+      <div className={isOutsideServiceWindow ? styles.screenContentMuted : undefined}>
+        <section className={styles.statsBar} aria-label="Service stats">
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Total Bookings</span>
+            <strong className={styles.statValue}>{stats.totalBookings}</strong>
+            <span className={styles.statMeta}>{stats.totalBookingsRemaining} remaining</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Total Covers</span>
+            <strong className={styles.statValue}>{stats.totalCovers}</strong>
+            <span className={styles.statMeta}>{stats.totalCoversRemaining} remaining</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Active Tables</span>
+            <strong className={styles.statValue}>{stats.activeTables}</strong>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Kitchen Cheques</span>
+            <strong className={styles.statValue}>{stats.kitchenCheques}</strong>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Ordering Soon</span>
+            <strong className={styles.statValue}>{stats.orderingSoonTables}</strong>
+            <span className={styles.statMeta}>{stats.orderingSoonCovers} covers</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Due In Next 30</span>
+            <strong className={styles.statValue}>{stats.dueNext30.tables}</strong>
+            <span className={styles.statMeta}>{stats.dueNext30.covers} covers</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Due In 60 Min</span>
+            <strong className={styles.statValue}>{stats.dueIn60.tables}</strong>
+            <span className={styles.statMeta}>{stats.dueIn60.covers} covers</span>
+          </div>
+          <div className={styles.statCard}>
+            <span className={styles.statLabel}>Takeaway Live</span>
+            <strong className={styles.statValue}>{stats.takeawayLive}</strong>
+          </div>
+          <div className={`${styles.statCard} ${styles.tipsCard}`}>
+            <span className={styles.statLabel}>Card Tips</span>
+            <strong className={styles.statValue}>{formatCurrency(stats.cardTipsTotal)}</strong>
+            <span className={styles.statMeta}>Closed bills today</span>
+          </div>
+          <div className={`${styles.statCard} ${styles.clockCard}`}>
+            <span className={styles.statLabel}>Time</span>
+            <strong className={styles.statValue}>{formatShortTime(currentTime)}</strong>
+          </div>
         </section>
 
-        <section aria-label="Active orders panel" className={`${styles.panel} ${styles.rightStack}`}>
-          {selectedReview ? (
-            <ReviewDetailDrawer review={selectedReview} onClose={() => setDetailSelection(null)} />
-          ) : selectedOrder ? (
-            <OrderDetailDrawer
-              order={selectedOrder}
-              onClose={() => setDetailSelection(null)}
+        <SystemWarningBanner warnings={data?.warnings ?? []} error={error} />
+
+        <section className={styles.columns}>
+          <section aria-label="Service board panel" className={styles.panel}>
+            <ServiceBoard
+              rows={boardRows}
+              timeline={
+                data?.timeline ?? {
+                  startHour: 12,
+                  endHour: 22,
+                  now: new Date().toISOString()
+                }
+              }
+              onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
             />
-          ) : (
-            <>
-              <OrderLane
-                title="Eat-In"
-                orders={sortActiveOrders(data?.activeOrders.inHouse ?? [])}
-                currentTime={currentTime}
-                onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
+          </section>
+
+          <section aria-label="Active orders panel" className={`${styles.panel} ${styles.rightStack}`}>
+            {selectedReview ? (
+              <ReviewDetailDrawer review={selectedReview} onClose={() => setDetailSelection(null)} />
+            ) : selectedOrder ? (
+              <OrderDetailDrawer
+                order={selectedOrder}
+                onClose={() => setDetailSelection(null)}
               />
-              <OrderLane
-                title="Takeaway"
-                orders={sortActiveOrders(data?.activeOrders.takeaway ?? [])}
-                currentTime={currentTime}
-                onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
-              />
-              {(data?.activeOrders.unassigned.length ?? 0) > 0 ? (
+            ) : (
+              <>
                 <OrderLane
-                  title="Needs Review"
-                  orders={sortActiveOrders(data?.activeOrders.unassigned ?? [])}
+                  title="Eat-In"
+                  orders={sortActiveOrders(data?.activeOrders.inHouse ?? [])}
                   currentTime={currentTime}
                   onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
                 />
-              ) : null}
-            </>
-          )}
+                <OrderLane
+                  title="Takeaway"
+                  orders={sortActiveOrders(data?.activeOrders.takeaway ?? [])}
+                  currentTime={currentTime}
+                  onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
+                />
+                {(data?.activeOrders.unassigned.length ?? 0) > 0 ? (
+                  <OrderLane
+                    title="Needs Review"
+                    orders={sortActiveOrders(data?.activeOrders.unassigned ?? [])}
+                    currentTime={currentTime}
+                    onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
+                  />
+                ) : null}
+              </>
+            )}
+          </section>
         </section>
-      </section>
 
-      <section
-        data-testid="footer-rail"
-        style={{
-          marginTop: "14px",
-          display: "flex",
-          gap: "12px",
-          alignItems: "stretch",
-          minWidth: 0,
-          overflow: "hidden"
-        }}
-      >
-        <BillCallFooter
-          calls={billCalls}
-          dismissedCallIds={dismissedCallIds}
-          onDismiss={dismissBillCall}
+        <section
+          data-testid="footer-rail"
           style={{
-            flex: "1 1 108px",
-            minWidth: "108px"
+            marginTop: "14px",
+            display: "flex",
+            gap: "12px",
+            alignItems: "stretch",
+            minWidth: 0,
+            overflow: "hidden"
           }}
-        />
-        <ReviewsFooter
-          reviews={reviews}
-          onSelect={(reviewId) => setDetailSelection({ type: "review", reviewId })}
-          style={{
-            flex: "0 1 460px",
-            maxWidth: "460px",
-            minWidth: 0
-          }}
-        />
-      </section>
+        >
+          <BillCallFooter
+            calls={billCalls}
+            dismissedCallIds={dismissedCallIds}
+            onDismiss={dismissBillCall}
+            style={{
+              flex: "1 1 108px",
+              minWidth: "108px"
+            }}
+          />
+          <ReviewsFooter
+            reviews={reviews}
+            onSelect={(reviewId) => setDetailSelection({ type: "review", reviewId })}
+            style={{
+              flex: "0 1 460px",
+              maxWidth: "460px",
+              minWidth: 0
+            }}
+          />
+        </section>
+      </div>
+      {isOutsideServiceWindow ? (
+        <div
+          className={styles.serviceWindowOverlay}
+          data-testid="service-window-overlay"
+        >
+          <div className={styles.serviceWindowOverlayCard}>
+            <p className={styles.serviceWindowOverlayText}>
+              Outside service hours. Live updates resume at 10:00.
+            </p>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

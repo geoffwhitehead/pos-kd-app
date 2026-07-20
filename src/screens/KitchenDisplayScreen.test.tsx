@@ -246,4 +246,37 @@ describe("KitchenDisplayScreen", () => {
     expect(screen.queryByLabelText(/review details/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/order details/i)).toBeInTheDocument();
   });
+
+  it("shows an out-of-hours overlay outside the service window", () => {
+    render(
+      <KitchenDisplayScreen
+        data={{
+          ...sampleKitchenDisplayResponse,
+          timeline: {
+            ...sampleKitchenDisplayResponse.timeline,
+            now: "2026-07-18T23:30:00Z"
+          }
+        }}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    expect(
+      screen.getByText(/outside service hours\. live updates resume at 10:00\./i)
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("service-window-overlay")).toBeInTheDocument();
+  });
+
+  it("does not show the out-of-hours overlay during service hours", () => {
+    render(
+      <KitchenDisplayScreen
+        data={sampleKitchenDisplayResponse}
+        isLoading={false}
+        error={null}
+      />
+    );
+
+    expect(screen.queryByTestId("service-window-overlay")).not.toBeInTheDocument();
+  });
 });

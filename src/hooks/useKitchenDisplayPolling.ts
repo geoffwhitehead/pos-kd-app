@@ -1,23 +1,15 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { fetchKitchenDisplay } from "../api/fetchKitchenDisplay";
-import { getServiceHour } from "../lib/time";
+import { isWithinServiceHours } from "../lib/time";
 import type { AuthSession } from "../types/auth";
 import type { KitchenDisplayResponse } from "../types/kitchenDisplay";
 
 const POLL_INTERVAL_MS = 5000;
-const QUIET_HOURS_START = 23;
-const QUIET_HOURS_END = 10;
 
 type Options = {
   onSessionRefresh?: (session: AuthSession) => void;
   onAuthFailure?: () => void;
 };
-
-function isWithinQuietHours(value: Date) {
-  const hour = getServiceHour(value);
-
-  return hour >= QUIET_HOURS_START || hour < QUIET_HOURS_END;
-}
 
 export function useKitchenDisplayPolling(
   session: AuthSession | null,
@@ -54,7 +46,7 @@ export function useKitchenDisplayPolling(
     async function load() {
       const currentSession = sessionRef.current;
 
-      if (currentSession == null || isWithinQuietHours(new Date())) {
+      if (currentSession == null || !isWithinServiceHours(new Date())) {
         setIsLoading(false);
         return;
       }

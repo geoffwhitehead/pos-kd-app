@@ -1,6 +1,14 @@
 .screen {
+  position: relative;
   min-height: 100vh;
   padding: 16px;
+}
+
+.screenContentMuted {
+  filter: blur(8px);
+  opacity: 0.42;
+  pointer-events: none;
+  user-select: none;
 }
 
 .statsBar {
@@ -81,6 +89,34 @@
   border: 1px solid var(--color-border);
   border-radius: 18px;
   background: rgba(11, 15, 15, 0.82);
+}
+
+.serviceWindowOverlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.serviceWindowOverlayCard {
+  max-width: 360px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(10, 14, 14, 0.72);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.serviceWindowOverlayText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(245, 239, 225, 0.9);
+  text-align: center;
 }
 
 @media (max-width: 960px) {
