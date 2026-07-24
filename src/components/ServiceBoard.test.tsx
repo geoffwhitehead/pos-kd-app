@@ -79,5 +79,8 @@ describe("ServiceBoard", () => {
     );
 
     expect(screen.getByTestId("service-board-now-line")).toBeInTheDocument();
+    expect(screen.getByTestId("service-board-now-line")).toHaveStyle({
+      transform: "translateX(-50%)"
+    });
   });
 });

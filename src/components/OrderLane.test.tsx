@@ -38,7 +38,11 @@ describe("OrderLane", () => {
         title="Eat-In"
         currentTime="2026-07-18T19:42:10Z"
         orders={[
-          sampleKitchenDisplayResponse.activeOrders.inHouse[0]!,
+          {
+            ...sampleKitchenDisplayResponse.activeOrders.inHouse[0]!,
+            createdAt: "2026-07-18T19:10:00Z",
+            updatedAt: "2026-07-18T19:32:00Z"
+          },
           {
             ...sampleKitchenDisplayResponse.activeOrders.inHouse[0]!,
             displayRef: "7",
@@ -56,5 +60,13 @@ describe("OrderLane", () => {
     expect(screen.getByText(/older than 1 hour/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open order 12/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /open order 7/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /open order 7/i })).toHaveAttribute(
+      "data-card-size",
+      "compact"
+    );
+    expect(screen.getByRole("button", { name: /open order 12/i })).toHaveAttribute(
+      "data-card-size",
+      "default"
+    );
   });
 });

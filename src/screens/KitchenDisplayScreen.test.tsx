@@ -164,6 +164,10 @@ describe("KitchenDisplayScreen", () => {
     const statsBar = screen.getByLabelText(/service stats/i);
 
     expect(screen.getByRole("button", { name: /live order 12/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /live order 12/i })).toHaveStyle({
+      background: "rgba(90, 93, 100, 0.42)"
+    });
+    expect(screen.queryByTestId("live-segment-food_ordered-12")).not.toBeInTheDocument();
     expect(within(statsBar).getByText(/total bookings/i)).toBeInTheDocument();
     expect(within(statsBar).getByText("2")).toBeInTheDocument();
     expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();

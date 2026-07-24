@@ -41,6 +41,12 @@ export function OrderLane({ title, orders, currentTime, onSelect }: Props) {
     gap: "8px",
     alignItems: "start"
   } as const;
+  const agedGridStyle = {
+    ...compactGridStyle,
+    gridTemplateColumns: "repeat(auto-fit, minmax(132px, 1fr))",
+    gap: "6px",
+    opacity: 0.84
+  } as const;
 
   return (
     <section aria-label={title}>
@@ -61,6 +67,7 @@ export function OrderLane({ title, orders, currentTime, onSelect }: Props) {
                   <OrderCard
                     key={`${order.serviceType}-${order.displayRef}`}
                     order={order}
+                    size="default"
                     onPress={() => onSelect(order.displayRef)}
                   />
                 ))}
@@ -69,14 +76,14 @@ export function OrderLane({ title, orders, currentTime, onSelect }: Props) {
           ) : null}
           <section aria-label={shouldSplitIntoRail ? `${title} aged cheques` : `${title} cheques`}>
             {shouldSplitIntoRail ? (
-              <h4 style={{ margin: "0 0 8px 0", fontSize: "12px", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-subtle)" }}>
+              <h4 style={{ margin: "0 0 6px 0", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", color: "rgba(255,255,255,0.52)" }}>
                 Older Than 1 Hour
               </h4>
             ) : null}
             <div
               style={
                 shouldSplitIntoRail
-                  ? compactGridStyle
+                  ? agedGridStyle
                   : {
                       ...compactGridStyle,
                       gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))"
@@ -87,6 +94,7 @@ export function OrderLane({ title, orders, currentTime, onSelect }: Props) {
                 <OrderCard
                   key={`${order.serviceType}-${order.displayRef}`}
                   order={order}
+                  size={shouldSplitIntoRail ? "compact" : "default"}
                   onPress={() => onSelect(order.displayRef)}
                 />
               ))}

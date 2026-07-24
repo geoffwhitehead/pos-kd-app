@@ -224,10 +224,64 @@ describe("boardStats", () => {
         tables: 3,
         covers: 12
       },
-      cardTipsTotal: 184.2,
+      cardTipsTotal: 183.5,
       orderingSoonTables: 1,
       orderingSoonCovers: 0
     });
+  });
+
+  it("uses the most recently updated snapshot for cumulative card tips instead of the highest total", () => {
+    const stats = getServiceStats({
+      generatedAt: "2026-07-18T18:42:10Z",
+      warnings: [],
+      bookingsStatus: "ok",
+      liveOrdersStatus: "ok",
+      timeline: {
+        startHour: 12,
+        endHour: 22,
+        now: "2026-07-18T18:42:10Z"
+      },
+      tables: [],
+      activeOrders: {
+        inHouse: [
+          {
+            displayRef: "12",
+            serviceType: "dine_in",
+            billId: "bill_12",
+            billRef: "12",
+            bookingName: null,
+            partyName: null,
+            createdAt: "2026-07-18T18:10:00Z",
+            updatedAt: "2026-07-18T18:20:00Z",
+            billPeriodClosedServiceChargeTotal: 1000,
+            status: "food_ordered",
+            categorySummary: [],
+            items: [],
+            tableCalls: []
+          }
+        ],
+        takeaway: [
+          {
+            displayRef: "TA1",
+            serviceType: "takeaway",
+            billId: "bill_ta1",
+            billRef: "9001",
+            bookingName: null,
+            partyName: null,
+            createdAt: "2026-07-18T18:10:00Z",
+            updatedAt: "2026-07-18T18:40:00Z",
+            billPeriodClosedServiceChargeTotal: 26,
+            status: "called",
+            categorySummary: [],
+            items: [],
+            tableCalls: []
+          }
+        ],
+        unassigned: []
+      }
+    });
+
+    expect(stats.cardTipsTotal).toBe(26);
   });
 
   it("combines board bookings with same-day retained table history for totals and remaining counts", () => {

@@ -132,13 +132,26 @@ export function getServiceStats(
   const activeTables = data?.activeOrders.inHouse.length ?? 0;
   const kitchenCheques = data?.activeOrders.inHouse.length ?? 0;
   const takeawayLive = data?.activeOrders.takeaway.length ?? 0;
-  const cardTipsTotal = [
+  const latestTipsSnapshot = [
     ...(data?.activeOrders.inHouse ?? []),
     ...(data?.activeOrders.takeaway ?? []),
     ...(data?.activeOrders.unassigned ?? [])
-  ].reduce((highestTotal, order) => {
-    return Math.max(highestTotal, order.billPeriodClosedServiceChargeTotal);
-  }, 0);
+  ].reduce<{
+    updatedAtMs: number;
+    total: number;
+  } | null>((latestOrder, order) => {
+    const updatedAtMs = new Date(order.updatedAt).getTime();
+
+    if (latestOrder == null || updatedAtMs > latestOrder.updatedAtMs) {
+      return {
+        updatedAtMs,
+        total: order.billPeriodClosedServiceChargeTotal
+      };
+    }
+
+    return latestOrder;
+  }, null);
+  const cardTipsTotal = latestTipsSnapshot?.total ?? 0;
   const now = new Date(nowIso).getTime();
   const dueNext30 = rows.reduce(
     (totalsForWindow, row) => {

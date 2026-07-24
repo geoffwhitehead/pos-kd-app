@@ -38,7 +38,7 @@ const LIVE_STATUS_COLORS: Record<LiveTableStatus, string> = {
 };
 
 function buildLiveSegments(row: ServiceBoardRow["liveOverlay"]) {
-  if (row == null) {
+  if (row == null || row.isRetained) {
     return [];
   }
 
@@ -150,6 +150,7 @@ export function TimelineRow({ row, timeline, layout = DEFAULT_LAYOUT, onSelect }
   const mainsCount =
     liveOverlay?.categorySummary.find((summary) => summary.label === "Mains")?.count ?? 0;
   const liveLabel = mainsCount > 0 ? String(mainsCount) : "";
+  const isRetainedOverlay = liveOverlay?.isRetained === true;
 
   return (
     <div
@@ -263,17 +264,21 @@ export function TimelineRow({ row, timeline, layout = DEFAULT_LAYOUT, onSelect }
               position: "absolute",
               top: `${layout.liveTop}px`,
               height: `${layout.liveHeight}px`,
-              border: "1px solid rgba(255,255,255,0.16)",
+              border: isRetainedOverlay
+                ? "1px solid rgba(255,255,255,0.08)"
+                : "1px solid rgba(255,255,255,0.16)",
               borderRadius: "7px",
-              background: "rgba(18, 23, 20, 0.18)",
-              color: "#f5f1e6",
+              background: isRetainedOverlay
+                ? "rgba(90, 93, 100, 0.42)"
+                : "rgba(18, 23, 20, 0.18)",
+              color: isRetainedOverlay ? "rgba(255,255,255,0.72)" : "#f5f1e6",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: "6px",
               padding: `0 ${layout.livePaddingX}px`,
               textAlign: "center",
-              boxShadow: "0 6px 18px rgba(0,0,0,0.18)"
+              boxShadow: isRetainedOverlay ? "none" : "0 6px 18px rgba(0,0,0,0.18)"
             }}
             aria-label={`Live order ${row.displayRef}`}
           >
@@ -324,6 +329,7 @@ export function TimelineRow({ row, timeline, layout = DEFAULT_LAYOUT, onSelect }
                 position: "relative",
                 fontSize: `${layout.liveFontSize}px`,
                 fontWeight: 600,
+                color: isRetainedOverlay ? "rgba(255,255,255,0.72)" : "#f5f1e6",
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center"

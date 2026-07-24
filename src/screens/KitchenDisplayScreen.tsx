@@ -112,6 +112,7 @@ function buildRetainedOrders(data: KitchenDisplayResponse | null): RetainedActiv
         billId: order.billId,
         displayRef: order.displayRef,
         status: order.status,
+        isRetained: false,
         startsAt: order.createdAt,
         endsAt: order.updatedAt,
         createdAt: order.createdAt,
@@ -146,7 +147,10 @@ function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActi
 
     if (existingRow) {
       if (existingRow.liveOverlay == null) {
-        existingRow.liveOverlay = retainedOrder.liveOverlay;
+        existingRow.liveOverlay = {
+          ...retainedOrder.liveOverlay,
+          isRetained: true
+        };
       }
 
       continue;
@@ -157,7 +161,10 @@ function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActi
       tableRef: retainedOrder.tableRef,
       floor: retainedOrder.floor,
       bookings: [],
-      liveOverlay: retainedOrder.liveOverlay
+      liveOverlay: {
+        ...retainedOrder.liveOverlay,
+        isRetained: true
+      }
     });
   }
 

@@ -98,6 +98,7 @@ export function ServiceBoard({ rows, timeline, onSelect }: Props) {
             top: 0,
             bottom: 0,
             left: `calc(56px + 8px + ${nowLineStyle.left})`,
+            transform: "translateX(-50%)",
             width: "3px",
             background: "linear-gradient(180deg, rgba(234, 70, 58, 0.98), rgba(181, 58, 50, 0.98))",
             boxShadow: "0 0 0 1px rgba(181, 58, 50, 0.26), 0 0 16px rgba(216, 74, 63, 0.32)",

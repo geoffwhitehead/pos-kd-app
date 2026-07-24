@@ -42,6 +42,7 @@ export type LiveTableOverlay = {
   billId: string;
   displayRef: string;
   status: LiveTableStatus;
+  isRetained?: boolean;
   startsAt: string;
   endsAt: string;
   createdAt: string;
