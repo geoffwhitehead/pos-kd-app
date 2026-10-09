@@ -141,10 +141,8 @@ export function ServiceBoard({
             left: `calc(${nowLineStyle.left} + ${64 * (1 - Number.parseFloat(nowLineStyle.left) / 100)}px)`,
             transform: "translateX(-50%)",
             width: "3px",
-            background:
-              "linear-gradient(180deg, rgba(234, 70, 58, 0.98), rgba(181, 58, 50, 0.98))",
-            boxShadow:
-              "0 0 0 1px rgba(181, 58, 50, 0.26), 0 0 16px rgba(216, 74, 63, 0.32)",
+            background: "var(--color-call)",
+            boxShadow: "none",
             borderRadius: "999px",
             pointerEvents: "none",
             zIndex: 5,

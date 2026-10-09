@@ -29,19 +29,23 @@ function getDensityTone(bookings: number) {
 }
 
 const DENSITY_COLORS = {
-  grey: "rgba(90, 93, 100, 0.35)",
-  green: "rgba(53, 120, 74, 0.9)",
-  yellow: "rgba(198, 137, 47, 0.92)",
-  red: "rgba(178, 62, 54, 0.94)",
+  grey: "var(--color-booking)",
+  green: "#246638",
+  yellow: "#875609",
+  red: "#a5241e",
 } as const;
 
 type PressureRowProps = {
   label: string;
-  suffix: "0-30" | "30-60";
+  suffix: "0-30" | "30-60" | "60-90";
   values: Array<{ slot: string; bookings: number; covers: number }>;
 };
 
 function PressureRow({ label, suffix, values }: PressureRowProps) {
+  const isDessert = suffix === "60-90";
+  const assumption = isDessert
+    ? " Weighted to 2/5 (40%) of tables and covers."
+    : "";
   return (
     <div
       aria-label={`${label} strip`}
@@ -53,7 +57,7 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
       }}
     >
       <span
-        title={`Estimated ${label.toLowerCase()} from arrivals ${suffix} minutes earlier. Numbers show covers; colours show arriving tables.`}
+        title={`Estimated ${label.toLowerCase()} from arrivals ${suffix} minutes earlier. Numbers show covers; colours show arriving tables.${assumption}`}
         style={{
           color: "var(--color-subtle)",
           fontSize: "9px",
@@ -78,7 +82,7 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
               key={`${suffix}-${entry.slot}`}
               data-testid={`booking-pressure-${suffix}-${entry.slot}`}
               data-density-tone={tone}
-              title={`${label} ${entry.slot}: ${entry.bookings} bookings, ${entry.covers} covers arriving ${suffix} minutes earlier (estimate)`}
+              title={`${label} ${entry.slot}: ${isDessert ? entry.bookings.toFixed(1) : entry.bookings} bookings, ${isDessert ? entry.covers.toFixed(1) : entry.covers} covers arriving ${suffix} minutes earlier (estimate)${assumption}`}
               style={{
                 height: "16px",
                 borderRadius: "999px",
@@ -87,7 +91,7 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
                   tone === "grey"
                     ? "inset 0 0 0 1px rgba(255,255,255,0.06)"
                     : "none",
-                color: "rgba(255,255,255,0.92)",
+                color: tone === "grey" ? "var(--color-text)" : "#ffffff",
                 fontSize: "9px",
                 fontWeight: 700,
                 lineHeight: "16px",
@@ -97,7 +101,13 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
                 whiteSpace: "nowrap",
               }}
             >
-              {entry.covers > 0 ? entry.covers : ""}
+              {entry.covers > 0
+                ? isDessert
+                  ? entry.covers < 1
+                    ? "<1"
+                    : `≈${Math.round(entry.covers)}`
+                  : entry.covers
+                : ""}
             </span>
           );
         })}
@@ -134,6 +144,15 @@ export function BookingDensityStrip({ rows, timeline }: Props) {
           slot: entry.slot,
           bookings: entry.mains,
           covers: entry.mainCovers,
+        }))}
+      />
+      <PressureRow
+        label="Dessert pressure"
+        suffix="60-90"
+        values={pressure.map((entry) => ({
+          slot: entry.slot,
+          bookings: entry.desserts,
+          covers: entry.dessertCovers,
         }))}
       />
     </div>

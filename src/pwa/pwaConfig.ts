@@ -5,8 +5,8 @@ export const pwaManifest = {
   short_name: "Kitchen",
   start_url: "/",
   display: "fullscreen",
-  background_color: "#101716",
-  theme_color: "#101716",
+  background_color: "#e4e8e9",
+  theme_color: "#ffffff",
   icons: [
     {
       src: "/icons/icon-192.png",

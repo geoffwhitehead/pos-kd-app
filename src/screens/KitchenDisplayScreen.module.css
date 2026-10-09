@@ -89,7 +89,7 @@
   padding: 18px;
   border: 1px solid var(--color-border);
   border-radius: 18px;
-  background: rgba(11, 15, 15, 0.82);
+  background: var(--color-panel-muted);
 }
 
 .serviceWindowOverlay {
@@ -103,9 +103,9 @@
 .serviceWindowOverlayCard {
   max-width: 360px;
   padding: 18px 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--color-border);
   border-radius: 18px;
-  background: rgba(10, 14, 14, 0.72);
+  background: var(--color-panel);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
   backdrop-filter: blur(18px);
 }
@@ -116,7 +116,7 @@
   line-height: 1.5;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(245, 239, 225, 0.9);
+  color: var(--color-text);
   text-align: center;
 }
 

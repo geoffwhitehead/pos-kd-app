@@ -93,7 +93,7 @@ export function OrderLane({ title, orders, currentTime, onSelect }: Props) {
                   fontSize: "11px",
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
-                  color: "rgba(255,255,255,0.52)",
+                  color: "var(--color-subtle)",
                 }}
               >
                 Older Than 1 Hour

@@ -230,7 +230,7 @@ describe("KitchenDisplayScreen", () => {
       screen.getByRole("button", { name: /live order 12/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /live order 12/i })).toHaveStyle({
-      background: "rgba(90, 93, 100, 0.42)",
+      background: "var(--color-booking)",
     });
     expect(
       screen.queryByTestId("live-segment-food_ordered-12"),

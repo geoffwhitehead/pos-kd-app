@@ -36,9 +36,9 @@ type Props = {
 };
 
 const LIVE_STATUS_COLORS: Record<LiveTableStatus, string> = {
-  active: "#32764c",
-  food_ordered: "#97631e",
-  called: "#97631e",
+  active: "var(--color-seated)",
+  food_ordered: "var(--color-food)",
+  called: "var(--color-food)",
 };
 
 function buildLiveSegments(row: ServiceBoardRow["liveOverlay"]) {
@@ -171,9 +171,13 @@ export function TimelineRow({
       : row.liveOverlay;
   const liveSegments = buildLiveSegments(liveOverlay);
   const liveCallTimes = liveOverlay?.tableCalls ?? [];
-  const mainsCount =
-    liveOverlay?.categorySummary.find((summary) => summary.label === "Mains")
-      ?.count ?? 0;
+  const mainsCount = (liveOverlay?.categorySummary ?? []).reduce(
+    (count, summary) =>
+      summary.label.trim().toLowerCase() === "mains"
+        ? count + summary.count
+        : count,
+    0,
+  );
   const liveLabel = mainsCount > 0 ? String(mainsCount) : "";
   const isRetainedOverlay = liveOverlay?.isRetained === true;
   const isWalkIn =
@@ -202,7 +206,7 @@ export function TimelineRow({
         style={{
           position: "relative",
           minHeight: `${layout.rowHeight}px`,
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid var(--color-grid-minor)",
         }}
       >
         {timelineSlots.slice(1).map((slot, index) => {
@@ -219,8 +223,8 @@ export function TimelineRow({
                 left: `${(slotIndex / lastIndex) * 100}%`,
                 width: "1px",
                 background: isHourDivider
-                  ? "rgba(255,255,255,0.16)"
-                  : "rgba(255,255,255,0.08)",
+                  ? "var(--color-grid-major)"
+                  : "var(--color-grid-minor)",
                 pointerEvents: "none",
               }}
             />
@@ -240,11 +244,11 @@ export function TimelineRow({
                 top: `${layout.bookingTop}px`,
                 height: `${layout.bookingHeight}px`,
                 border: isNewBooking(booking.createdAt)
-                  ? "2px solid #69d391"
-                  : "1px solid rgba(255,255,255,0.06)",
+                  ? "2px solid var(--color-new-booking)"
+                  : "1px solid var(--color-booking-border)",
                 borderRadius: "6px",
-                background: "rgba(90, 93, 100, 0.42)",
-                color: "rgba(255,255,255,0.72)",
+                background: "var(--color-booking)",
+                color: "var(--color-text)",
                 padding: `0 ${layout.bookingPaddingX}px`,
                 textAlign: "left",
               }}
@@ -283,11 +287,11 @@ export function TimelineRow({
                 top: `${layout.bookingTop}px`,
                 height: `${layout.bookingHeight}px`,
                 border: isNewBooking(booking.createdAt)
-                  ? "2px solid #69d391"
-                  : "1px solid rgba(255,255,255,0.06)",
+                  ? "2px solid var(--color-new-booking)"
+                  : "1px solid var(--color-booking-border)",
                 borderRadius: "6px",
-                background: "rgba(90, 93, 100, 0.42)",
-                color: "rgba(255,255,255,0.72)",
+                background: "var(--color-booking)",
+                color: "var(--color-text)",
                 padding: `0 ${layout.bookingPaddingX}px`,
                 textAlign: "left",
               }}
@@ -324,7 +328,7 @@ export function TimelineRow({
             data-walk-in={isWalkIn}
             title={
               isWalkIn
-                ? "Possible walk-in: no ResOS reservation on this table"
+                ? `Possible walk-in: no ResOS reservation on this table. ${mainsCount > 0 ? `Estimated ${mainsCount} covers from mains ordered.` : "Covers unknown until mains are ordered."}`
                 : undefined
             }
             onClick={() => onSelect(row.displayRef)}
@@ -339,24 +343,22 @@ export function TimelineRow({
               top: `${layout.liveTop}px`,
               height: `${layout.liveHeight}px`,
               border: isWalkIn
-                ? "2px solid #80c9ef"
+                ? "2px solid var(--color-walk-in)"
                 : isRetainedOverlay
-                  ? "1px solid rgba(255,255,255,0.08)"
-                  : "1px solid rgba(255,255,255,0.16)",
+                  ? "1px solid var(--color-booking-border)"
+                  : "1px solid var(--color-border)",
               borderRadius: isRetainedOverlay ? "7px" : "7px 0 0 7px",
               background: isRetainedOverlay
-                ? "rgba(90, 93, 100, 0.42)"
-                : "rgba(18, 23, 20, 0.18)",
-              color: isRetainedOverlay ? "rgba(255,255,255,0.72)" : "#f5f1e6",
+                ? "var(--color-booking)"
+                : "var(--color-seated)",
+              color: "var(--color-text)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: "6px",
               padding: `0 ${layout.livePaddingX}px`,
               textAlign: "center",
-              boxShadow: isRetainedOverlay
-                ? "none"
-                : "0 6px 18px rgba(0,0,0,0.18)",
+              boxShadow: "none",
               isolation: "isolate",
             }}
             aria-label={`Live order ${row.displayRef}`}
@@ -405,7 +407,7 @@ export function TimelineRow({
                   position: "absolute",
                   insetBlock: "-2px",
                   width: "2px",
-                  background: "#d84a3f",
+                  background: "var(--color-call)",
                   boxShadow:
                     "0 0 0 1px rgba(216, 74, 63, 0.22), 0 0 8px rgba(216, 74, 63, 0.35)",
                 }}
@@ -416,7 +418,7 @@ export function TimelineRow({
                 position: "relative",
                 fontSize: `${layout.liveFontSize}px`,
                 fontWeight: 600,
-                color: isRetainedOverlay ? "rgba(255,255,255,0.72)" : "#f5f1e6",
+                color: "var(--color-text)",
                 whiteSpace: "nowrap",
                 display: "inline-flex",
                 alignItems: "center",

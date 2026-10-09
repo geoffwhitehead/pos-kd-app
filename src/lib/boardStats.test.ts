@@ -74,10 +74,42 @@ describe("boardStats", () => {
     );
 
     expect(pressure).toEqual([
-      { slot: "19:00", starters: 1, starterCovers: 2, mains: 1, mainCovers: 3 },
-      { slot: "19:30", starters: 1, starterCovers: 4, mains: 1, mainCovers: 2 },
-      { slot: "20:00", starters: 0, starterCovers: 0, mains: 1, mainCovers: 4 },
-      { slot: "20:30", starters: 0, starterCovers: 0, mains: 0, mainCovers: 0 },
+      {
+        slot: "19:00",
+        starters: 1,
+        starterCovers: 2,
+        mains: 1,
+        mainCovers: 3,
+        desserts: 0,
+        dessertCovers: 0,
+      },
+      {
+        slot: "19:30",
+        starters: 1,
+        starterCovers: 4,
+        mains: 1,
+        mainCovers: 2,
+        desserts: 2 / 5,
+        dessertCovers: 3 * (2 / 5),
+      },
+      {
+        slot: "20:00",
+        starters: 0,
+        starterCovers: 0,
+        mains: 1,
+        mainCovers: 4,
+        desserts: 2 / 5,
+        dessertCovers: 2 * (2 / 5),
+      },
+      {
+        slot: "20:30",
+        starters: 0,
+        starterCovers: 0,
+        mains: 0,
+        mainCovers: 0,
+        desserts: 2 / 5,
+        dessertCovers: 4 * (2 / 5),
+      },
     ]);
   });
 

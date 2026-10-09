@@ -4,6 +4,27 @@ import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 import { TimelineRow } from "./TimelineRow";
 
 describe("TimelineRow", () => {
+  it("shows mains quantities as estimated covers on walk-in cells", () => {
+    const row = structuredClone(sampleKitchenDisplayResponse.tables[1]!);
+    row.liveOverlay!.categorySummary = [
+      { key: "mains", label: "Mains", count: 2 },
+      { key: "more_mains", label: " mains ", count: 1 },
+      { key: "sides", label: "Sides", count: 4 },
+    ];
+    render(
+      <TimelineRow
+        row={row}
+        timeline={sampleKitchenDisplayResponse.timeline}
+        onSelect={() => {}}
+      />,
+    );
+    const cell = screen.getByRole("button", { name: /live order 15/i });
+    expect(within(cell).getByText("3")).toBeInTheDocument();
+    expect(cell).toHaveAttribute(
+      "title",
+      expect.stringContaining("Estimated 3 covers from mains ordered"),
+    );
+  });
   it("extends active orders to now with square right edges but preserves closed ends", () => {
     const row = structuredClone(sampleKitchenDisplayResponse.tables[0]!);
     row.liveOverlay!.endsAt = "2026-07-18T18:30:00Z";

@@ -1,15 +1,24 @@
 :root {
-  color-scheme: dark;
+  color-scheme: light;
   font-family: "Avenir Next", "Segoe UI", sans-serif;
-  --color-bg: #10151c;
-  --color-panel: #1c2530;
-  --color-panel-muted: #2c3947;
-  --color-text: #ffffff;
-  --color-subtle: #c3ced9;
-  --color-receipt: #faf7ef;
+  --color-bg: #e4e8e9;
+  --color-panel: #ffffff;
+  --color-panel-muted: #eef1f2;
+  --color-text: #101820;
+  --color-subtle: #374550;
+  --color-receipt: #fffdf6;
   --color-accent: #e7a83b;
-  --color-success: #4fb286;
-  --color-warning: #e56b6f;
-  --color-border: #465565;
+  --color-success: #146534;
+  --color-warning: #ac201b;
+  --color-border: #657580;
+  --color-grid-major: #87959e;
+  --color-grid-minor: #c0c9ce;
+  --color-booking: #dce2e6;
+  --color-booking-border: #87959e;
+  --color-seated: #b6e1c5;
+  --color-food: #ffd584;
+  --color-new-booking: #146534;
+  --color-walk-in: #00649d;
+  --color-call: #b21f19;
   --shadow-panel: none;
 }

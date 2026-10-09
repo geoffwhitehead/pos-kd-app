@@ -10,7 +10,7 @@
   padding: 28px;
   border: 1px solid var(--color-border);
   border-radius: 24px;
-  background: linear-gradient(180deg, rgba(34, 42, 42, 0.96), rgba(20, 27, 27, 0.96));
+  background: var(--color-panel);
   box-shadow: var(--shadow-panel);
 }
 
@@ -24,7 +24,7 @@
   border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 14px 16px;
-  background: rgba(9, 13, 13, 0.82);
+  background: var(--color-panel-muted);
   color: var(--color-text);
 }
 
@@ -44,6 +44,6 @@
 }
 
 .error {
-  color: #f3a0a3;
+  color: var(--color-warning);
   margin-top: 12px;
 }

@@ -1,4 +1,7 @@
-import { buildTimelineSlots, buildTimelineSlotsForWindow } from "../lib/timeline";
+import {
+  buildTimelineSlots,
+  buildTimelineSlotsForWindow,
+} from "../lib/timeline";
 
 type Props = {
   startHour: number;
@@ -22,16 +25,18 @@ export function TimelineAxis({ startHour, endHour, startIso, endIso }: Props) {
         gridTemplateColumns: "56px minmax(0, 1fr)",
         gap: "8px",
         alignItems: "end",
-        marginBottom: "10px"
+        marginBottom: "10px",
       }}
     >
-      <span style={{ color: "var(--color-subtle)", fontSize: "12px" }}>Table</span>
+      <span style={{ color: "var(--color-subtle)", fontSize: "12px" }}>
+        Table
+      </span>
       <div
         style={{
           minHeight: "24px",
           borderBottom: "1px solid var(--color-border)",
           paddingBottom: "6px",
-          position: "relative"
+          position: "relative",
         }}
       >
         {slots.map((slot, index) => (
@@ -42,7 +47,7 @@ export function TimelineAxis({ startHour, endHour, startIso, endIso }: Props) {
               left: `${(index / lastIndex) * 100}%`,
               fontSize: index % 2 === 0 ? "12px" : "10px",
               color:
-                index % 2 === 0 ? "var(--color-text)" : "rgba(242, 241, 232, 0.54)",
+                index % 2 === 0 ? "var(--color-text)" : "var(--color-subtle)",
               fontVariantNumeric: "tabular-nums",
               transform:
                 index === 0
@@ -58,7 +63,7 @@ export function TimelineAxis({ startHour, endHour, startIso, endIso }: Props) {
                       : "translate(-50%, 2px)",
               whiteSpace: "nowrap",
               lineHeight: 1,
-              textAlign: "center"
+              textAlign: "center",
             }}
           >
             {slot}

@@ -7,7 +7,7 @@ import type {
 import { getServiceDateString } from "./time";
 import { buildTimelineSlotsForWindow } from "./timeline";
 
-export type PressureBand = "0-30" | "30-60";
+export type PressureBand = "0-30" | "30-60" | "60-90";
 
 export function getBookingTotals(rows: ServiceBoardRow[]) {
   return rows.reduce(
@@ -274,8 +274,7 @@ function countBookingsForBand(
   slotStartIso: string,
   band: PressureBand,
 ) {
-  const [minimumMinutesAgo, maximumMinutesAgo] =
-    band === "0-30" ? [0, 30] : [30, 60];
+  const [minimumMinutesAgo, maximumMinutesAgo] = band.split("-").map(Number);
 
   return rows.reduce((count, row) => {
     return (
@@ -297,8 +296,7 @@ function countCoversForBand(
   slotStartIso: string,
   band: PressureBand,
 ) {
-  const [minimumMinutesAgo, maximumMinutesAgo] =
-    band === "0-30" ? [0, 30] : [30, 60];
+  const [minimumMinutesAgo, maximumMinutesAgo] = band.split("-").map(Number);
 
   return rows.reduce((covers, row) => {
     return (
@@ -344,6 +342,8 @@ export function getBookingPressureBySlot(
       starterCovers: countCoversForBand(rows, slotStartIso, "0-30"),
       mains: countBookingsForBand(rows, slotStartIso, "30-60"),
       mainCovers: countCoversForBand(rows, slotStartIso, "30-60"),
+      desserts: countBookingsForBand(rows, slotStartIso, "60-90") * (2 / 5),
+      dessertCovers: countCoversForBand(rows, slotStartIso, "60-90") * (2 / 5),
     };
   });
 }
