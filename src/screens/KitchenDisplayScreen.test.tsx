@@ -1,9 +1,10 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 import { KitchenDisplayScreen } from "./KitchenDisplayScreen";
 
 describe("KitchenDisplayScreen", () => {
+  afterEach(() => vi.unstubAllEnvs());
   it("renders the stats strip and split board layout", () => {
     render(
       <KitchenDisplayScreen
@@ -44,7 +45,6 @@ describe("KitchenDisplayScreen", () => {
     expect(screen.getByLabelText(/timeline axis/i)).toBeInTheDocument();
     const inHouseLane = screen.getByLabelText("Eat-In");
     const billCalls = screen.getByLabelText(/bill calls/i);
-    const reviews = screen.getByLabelText(/reviews/i);
 
     expect(
       within(inHouseLane).getByText(/fish and chips/i),
@@ -54,8 +54,7 @@ describe("KitchenDisplayScreen", () => {
     ).toBeInTheDocument();
     expect(billCalls).toBeInTheDocument();
     expect(within(billCalls).getByText("Table 12")).toBeInTheDocument();
-    expect(reviews).toBeInTheDocument();
-    expect(within(reviews).getByText(/cein mcgillicuddy/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/reviews/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("footer-rail")).toHaveStyle({ display: "flex" });
   });
 
@@ -248,6 +247,7 @@ describe("KitchenDisplayScreen", () => {
   });
 
   it("renders mocked reviews in the footer and opens review detail in the right pane", () => {
+    vi.stubEnv("VITE_ENABLE_REVIEW_PREVIEW", "true");
     render(
       <KitchenDisplayScreen
         data={sampleKitchenDisplayResponse}
@@ -273,6 +273,7 @@ describe("KitchenDisplayScreen", () => {
   });
 
   it("replaces review detail with order detail when a live order is selected from the planner", () => {
+    vi.stubEnv("VITE_ENABLE_REVIEW_PREVIEW", "true");
     render(
       <KitchenDisplayScreen
         data={sampleKitchenDisplayResponse}

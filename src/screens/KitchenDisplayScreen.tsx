@@ -187,7 +187,11 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
   const [retainedOrders, setRetainedOrders] = useState<RetainedActiveOrder[]>(
     () => buildRetainedOrders(data),
   );
-  const reviews = mockBoardReviews;
+  // Keep the preview hidden until the Google reviews integration is ready.
+  const reviews =
+    import.meta.env.VITE_ENABLE_REVIEW_PREVIEW === "true"
+      ? mockBoardReviews
+      : [];
   const selectedOrder =
     detailSelection?.type === "order"
       ? findSelectedOrder(data, detailSelection.displayRef)
@@ -403,21 +407,24 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
             dismissedCallIds={dismissedCallIds}
             onDismiss={dismissBillCall}
             style={{
-              flex: "1 1 108px",
+              flex: reviews.length > 0 ? "1 1 108px" : "1 1 100%",
+              width: reviews.length > 0 ? undefined : "100%",
               minWidth: "108px",
             }}
           />
-          <ReviewsFooter
-            reviews={reviews}
-            onSelect={(reviewId) =>
-              setDetailSelection({ type: "review", reviewId })
-            }
-            style={{
-              flex: "0 1 460px",
-              maxWidth: "460px",
-              minWidth: 0,
-            }}
-          />
+          {reviews.length > 0 && (
+            <ReviewsFooter
+              reviews={reviews}
+              onSelect={(reviewId) =>
+                setDetailSelection({ type: "review", reviewId })
+              }
+              style={{
+                flex: "0 1 460px",
+                maxWidth: "460px",
+                minWidth: 0,
+              }}
+            />
+          )}
         </section>
       </div>
       {isOutsideServiceWindow ? (

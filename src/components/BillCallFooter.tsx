@@ -12,10 +12,17 @@ type Props = {
   style?: React.CSSProperties;
 };
 
-export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Props) {
+export function BillCallFooter({
+  calls,
+  dismissedCallIds,
+  onDismiss,
+  style,
+}: Props) {
   const visibleCalls = calls.filter(
     (call) =>
-      call != null && call.id != null && !dismissedCallIds.includes(call.dismissalKey)
+      call != null &&
+      call.id != null &&
+      !dismissedCallIds.includes(call.dismissalKey),
   );
 
   return (
@@ -27,10 +34,11 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Pr
           padding: "12px 14px",
           border: "1px solid var(--color-border)",
           borderRadius: "18px",
-          background: "linear-gradient(180deg, rgba(36, 46, 46, 0.95), rgba(23, 30, 30, 0.95))",
+          background:
+            "linear-gradient(180deg, rgba(36, 46, 46, 0.95), rgba(23, 30, 30, 0.95))",
           boxShadow: "var(--shadow-panel)",
           display: "grid",
-          gap: "10px"
+          gap: "10px",
         }}
       >
         <div
@@ -38,7 +46,7 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Pr
             fontSize: "11px",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
-            color: "var(--color-subtle)"
+            color: "var(--color-subtle)",
           }}
         >
           Bill Calls
@@ -48,10 +56,12 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Pr
             display: "grid",
             gridAutoFlow: "column",
             gridAutoColumns: "minmax(120px, max-content)",
+            gridTemplateColumns:
+              visibleCalls.length === 0 ? "minmax(0, 1fr)" : undefined,
             gap: "8px",
             overflowX: "auto",
             paddingBottom: "2px",
-            alignItems: "stretch"
+            alignItems: "stretch",
           }}
         >
           {visibleCalls.length > 0 ? (
@@ -68,7 +78,7 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Pr
                   color: "var(--color-text)",
                   display: "grid",
                   gap: "4px",
-                  alignContent: "start"
+                  alignContent: "start",
                 }}
               >
                 <button
@@ -86,13 +96,17 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Pr
                     background: "rgba(255,255,255,0.08)",
                     color: "var(--color-text)",
                     fontSize: "11px",
-                    cursor: "pointer"
+                    cursor: "pointer",
                   }}
                 >
                   x
                 </button>
-                <strong style={{ fontSize: "18px", lineHeight: 1 }}>Table {call.displayRef}</strong>
-                <span style={{ fontSize: "13px", color: "var(--color-subtle)" }}>
+                <strong style={{ fontSize: "18px", lineHeight: 1 }}>
+                  Table {call.displayRef}
+                </strong>
+                <span
+                  style={{ fontSize: "13px", color: "var(--color-subtle)" }}
+                >
                   {formatShortTime(call.calledAt)}
                 </span>
               </article>
@@ -107,7 +121,7 @@ export function BillCallFooter({ calls, dismissedCallIds, onDismiss, style }: Pr
                 display: "grid",
                 placeItems: "center",
                 padding: "10px 12px",
-                fontSize: "13px"
+                fontSize: "13px",
               }}
             >
               No bill calls.
