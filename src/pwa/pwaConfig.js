@@ -24,6 +24,8 @@ export const pwaOptions = {
   includeAssets: ["icons/icon-192.png", "icons/icon-512.png"],
   manifest: pwaManifest,
   workbox: {
+    skipWaiting: true,
+    clientsClaim: true,
     globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
     navigateFallback: "/index.html",
     navigateFallbackDenylist: [/^\/api(?:\/|$)/],

@@ -29,6 +29,8 @@ export declare const pwaOptions: {
     }[];
   };
   workbox: {
+    skipWaiting: true;
+    clientsClaim: true;
     globPatterns: string[];
     navigateFallback: string;
     navigateFallbackDenylist: RegExp[];
