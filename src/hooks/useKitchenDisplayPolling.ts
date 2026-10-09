@@ -13,7 +13,7 @@ type Options = {
 
 export function useKitchenDisplayPolling(
   session: AuthSession | null,
-  options: Options = {}
+  options: Options = {},
 ) {
   const hasSession = session != null;
   const [data, setData] = useState<KitchenDisplayResponse | null>(null);
@@ -42,15 +42,18 @@ export function useKitchenDisplayPolling(
     }
 
     let cancelled = false;
+    let inFlight = false;
 
     async function load() {
       const currentSession = sessionRef.current;
 
+      if (inFlight) return;
       if (currentSession == null || !isWithinServiceHours(new Date())) {
         setIsLoading(false);
         return;
       }
 
+      inFlight = true;
       try {
         const response = await fetchKitchenDisplay(currentSession);
 
@@ -59,6 +62,7 @@ export function useKitchenDisplayPolling(
         }
 
         if (response.nextSession != null) {
+          sessionRef.current = response.nextSession;
           notifySessionRefresh(response.nextSession);
         }
 
@@ -78,6 +82,7 @@ export function useKitchenDisplayPolling(
           notifyAuthFailure();
         }
       } finally {
+        inFlight = false;
         if (!cancelled) {
           setIsLoading(false);
         }

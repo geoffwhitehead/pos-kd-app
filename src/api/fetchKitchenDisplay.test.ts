@@ -4,7 +4,7 @@ import { fetchKitchenDisplay } from "./fetchKitchenDisplay";
 vi.mock("../config/api", () => ({
   getApiBaseUrl: () => "https://positive-server.herokuapp.com",
   buildApiUrl: (baseUrl: string, path: string) =>
-    `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`
+    `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`,
 }));
 
 describe("fetchKitchenDisplay", () => {
@@ -19,13 +19,13 @@ describe("fetchKitchenDisplay", () => {
         ok: true,
         headers: new Headers({
           authorization: "Bearer access_456",
-          "x-refresh-token": "refresh_789"
+          "x-refresh-token": "refresh_789",
         }),
         json: async () => ({
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T09:21:50.359Z",
-            redisBacked: true
+            redisBacked: true,
           },
           boardRows: [
             {
@@ -34,8 +34,8 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T16:00:00.000Z",
               covers: 2,
               state: "active_booked",
-              hasOpenBill: true
-            }
+              hasOpenBill: true,
+            },
           ],
           activeOrders: {
             inHouse: [
@@ -51,13 +51,16 @@ describe("fetchKitchenDisplay", () => {
                   {
                     id: "item_1",
                     name: "Soup",
+                    printMessage: "Sauce on side",
+                    offerInstanceId: "offer-instance-1",
+                    offerName: "Lunch special",
                     quantity: 2,
                     groupLabel: "Starters",
                     printerGroup: {
                       id: "kitchen",
-                      name: "Kitchen"
+                      name: "Kitchen",
                     },
-                    modifiers: []
+                    modifiers: [],
                   },
                   {
                     id: "item_2",
@@ -66,57 +69,62 @@ describe("fetchKitchenDisplay", () => {
                     groupLabel: "Mains",
                     printerGroup: {
                       id: "kitchen",
-                      name: "Kitchen"
+                      name: "Kitchen",
                     },
-                    modifiers: ["Medium rare"]
-                  }
-                ]
-              }
+                    modifiers: ["Medium rare"],
+                  },
+                ],
+              },
             ],
-            takeaway: []
-          }
-        })
-      })
+            takeaway: [],
+          },
+        }),
+      }),
     );
 
     const response = await fetchKitchenDisplay({
       accessToken: "access_123",
-      refreshToken: "refresh_456"
+      refreshToken: "refresh_456",
     });
 
+    expect(response.data.activeOrders.inHouse[0]?.items[0]).toMatchObject({
+      printMessage: "Sauce on side",
+      offerInstanceId: "offer-instance-1",
+      offerName: "Lunch special",
+    });
     expect(response.nextSession).toEqual({
       accessToken: "access_456",
-      refreshToken: "refresh_789"
+      refreshToken: "refresh_789",
     });
 
     expect(response.data.tables[0]).toMatchObject({
       displayRef: "12",
       tableRef: "12",
-      floor: "Service Floor"
+      floor: "Service Floor",
     });
     expect(response.data.tables[0]?.bookings[0]).toMatchObject({
       label: "Andia",
       covers: 2,
-      startsAt: "2026-07-18T16:00:00.000Z"
+      startsAt: "2026-07-18T16:00:00.000Z",
     });
     expect(response.data.activeOrders.inHouse[0]).toMatchObject({
       displayRef: "12",
       bookingName: null,
       status: "active",
       createdAt: "2026-07-18T16:12:00.000Z",
-      billPeriodClosedServiceChargeTotal: 184.2
+      billPeriodClosedServiceChargeTotal: 184.2,
     });
     expect(response.data.activeOrders.inHouse[0]?.categorySummary).toEqual([
       {
         key: "starters",
         label: "Starters",
-        count: 2
+        count: 2,
       },
       {
         key: "mains",
         label: "Mains",
-        count: 1
-      }
+        count: 1,
+      },
     ]);
     expect(response.data.activeOrders.unassigned).toEqual([]);
     expect(response.data.timeline.startHour).toBe(12);
@@ -133,7 +141,7 @@ describe("fetchKitchenDisplay", () => {
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T09:21:50.359Z",
-            redisBacked: true
+            redisBacked: true,
           },
           boardRows: [
             {
@@ -142,7 +150,7 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T16:00:00.000Z",
               covers: 4,
               state: "booked",
-              hasOpenBill: false
+              hasOpenBill: false,
             },
             {
               tableRef: "1",
@@ -150,29 +158,28 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T19:30:00.000Z",
               covers: 2,
               state: "booked",
-              hasOpenBill: false
-            }
+              hasOpenBill: false,
+            },
           ],
           activeOrders: {
             inHouse: [],
-            takeaway: []
-          }
-        })
-      })
+            takeaway: [],
+          },
+        }),
+      }),
     );
 
     const response = await fetchKitchenDisplay({
       accessToken: "access_123",
-      refreshToken: "refresh_456"
+      refreshToken: "refresh_456",
     });
 
     expect(response.data.tables).toHaveLength(1);
     expect(response.data.tables[0]?.tableRef).toBe("1");
     expect(response.data.tables[0]?.bookings).toHaveLength(2);
-    expect(response.data.tables[0]?.bookings.map((booking) => booking.label)).toEqual([
-      "Finley",
-      "Jill"
-    ]);
+    expect(
+      response.data.tables[0]?.bookings.map((booking) => booking.label),
+    ).toEqual(["Finley", "Jill"]);
   });
 
   it("sizes booking cells by cover bands", async () => {
@@ -185,7 +192,7 @@ describe("fetchKitchenDisplay", () => {
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T09:21:50.359Z",
-            redisBacked: true
+            redisBacked: true,
           },
           boardRows: [
             {
@@ -194,7 +201,7 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T16:00:00.000Z",
               covers: 2,
               state: "booked",
-              hasOpenBill: false
+              hasOpenBill: false,
             },
             {
               tableRef: "2",
@@ -202,7 +209,7 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T16:00:00.000Z",
               covers: 4,
               state: "booked",
-              hasOpenBill: false
+              hasOpenBill: false,
             },
             {
               tableRef: "3",
@@ -210,31 +217,34 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T16:00:00.000Z",
               covers: 6,
               state: "booked",
-              hasOpenBill: false
-            }
+              hasOpenBill: false,
+            },
           ],
           activeOrders: {
             inHouse: [],
-            takeaway: []
-          }
-        })
-      })
+            takeaway: [],
+          },
+        }),
+      }),
     );
 
     const response = await fetchKitchenDisplay({
       accessToken: "access_123",
-      refreshToken: "refresh_456"
+      refreshToken: "refresh_456",
     });
 
-    expect(response.data.tables.find((table) => table.tableRef === "1")?.bookings[0]?.endsAt).toBe(
-      "2026-07-18T17:30:00.000Z"
-    );
-    expect(response.data.tables.find((table) => table.tableRef === "2")?.bookings[0]?.endsAt).toBe(
-      "2026-07-18T18:00:00.000Z"
-    );
-    expect(response.data.tables.find((table) => table.tableRef === "3")?.bookings[0]?.endsAt).toBe(
-      "2026-07-18T18:30:00.000Z"
-    );
+    expect(
+      response.data.tables.find((table) => table.tableRef === "1")?.bookings[0]
+        ?.endsAt,
+    ).toBe("2026-07-18T17:30:00.000Z");
+    expect(
+      response.data.tables.find((table) => table.tableRef === "2")?.bookings[0]
+        ?.endsAt,
+    ).toBe("2026-07-18T18:00:00.000Z");
+    expect(
+      response.data.tables.find((table) => table.tableRef === "3")?.bookings[0]
+        ?.endsAt,
+    ).toBe("2026-07-18T18:30:00.000Z");
   });
 
   it("keeps drinks-only seated tables on the board while hiding them from kitchen cheques", async () => {
@@ -247,7 +257,7 @@ describe("fetchKitchenDisplay", () => {
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T10:21:50.359Z",
-            redisBacked: true
+            redisBacked: true,
           },
           boardRows: [
             {
@@ -256,7 +266,7 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T16:00:00.000Z",
               covers: 2,
               state: "active_booked",
-              hasOpenBill: true
+              hasOpenBill: true,
             },
             {
               tableRef: "7",
@@ -264,8 +274,8 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T17:00:00.000Z",
               covers: 2,
               state: "active_booked",
-              hasOpenBill: true
-            }
+              hasOpenBill: true,
+            },
           ],
           activeOrders: {
             inHouse: [
@@ -285,14 +295,14 @@ describe("fetchKitchenDisplay", () => {
                     printCategory: {
                       id: "none",
                       shortName: "none",
-                      name: "none"
+                      name: "none",
                     },
                     addedAt: "2026-07-18T10:12:46.523Z",
                     printerGroup: {
                       id: "kitchen",
-                      name: "Kitchen"
+                      name: "Kitchen",
                     },
-                    modifiers: []
+                    modifiers: [],
                   },
                   {
                     id: "item_2",
@@ -302,16 +312,16 @@ describe("fetchKitchenDisplay", () => {
                     printCategory: {
                       id: "drinks",
                       shortName: "drinks",
-                      name: "Drinks"
+                      name: "Drinks",
                     },
                     addedAt: "2026-07-18T10:13:46.523Z",
                     printerGroup: {
                       id: "bar",
-                      name: "Bar"
+                      name: "Bar",
                     },
-                    modifiers: []
-                  }
-                ]
+                    modifiers: [],
+                  },
+                ],
               },
               {
                 billId: "bill_7",
@@ -329,27 +339,27 @@ describe("fetchKitchenDisplay", () => {
                     printCategory: {
                       id: "drinks",
                       shortName: "drinks",
-                      name: "Drinks"
+                      name: "Drinks",
                     },
                     addedAt: "2026-07-18T10:14:46.523Z",
                     printerGroup: {
                       id: "bar",
-                      name: "Bar"
+                      name: "Bar",
                     },
-                    modifiers: []
-                  }
-                ]
-              }
+                    modifiers: [],
+                  },
+                ],
+              },
             ],
-            takeaway: []
-          }
-        })
-      })
+            takeaway: [],
+          },
+        }),
+      }),
     );
 
     const response = await fetchKitchenDisplay({
       accessToken: "access_123",
-      refreshToken: "refresh_456"
+      refreshToken: "refresh_456",
     });
 
     expect(response.data.activeOrders.inHouse).toHaveLength(1);
@@ -357,15 +367,20 @@ describe("fetchKitchenDisplay", () => {
     expect(response.data.activeOrders.inHouse[0]?.items).toEqual([
       expect.objectContaining({
         name: "Moo Ping",
-        quantity: 1
-      })
+        quantity: 1,
+      }),
     ]);
-    expect(response.data.tables.find((table) => table.tableRef === "12")?.liveOverlay).toMatchObject({
-      status: "food_ordered"
+    expect(
+      response.data.tables.find((table) => table.tableRef === "12")
+        ?.liveOverlay,
+    ).toMatchObject({
+      status: "food_ordered",
     });
-    expect(response.data.tables.find((table) => table.tableRef === "7")?.liveOverlay).toMatchObject({
+    expect(
+      response.data.tables.find((table) => table.tableRef === "7")?.liveOverlay,
+    ).toMatchObject({
       status: "active",
-      foodOrderedAt: null
+      foodOrderedAt: null,
     });
   });
 
@@ -379,7 +394,7 @@ describe("fetchKitchenDisplay", () => {
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T10:42:10.000Z",
-            redisBacked: true
+            redisBacked: true,
           },
           boardRows: [
             {
@@ -388,8 +403,8 @@ describe("fetchKitchenDisplay", () => {
               bookingTime: "2026-07-18T18:00:00.000Z",
               covers: 4,
               state: "active_booked",
-              hasOpenBill: true
-            }
+              hasOpenBill: true,
+            },
           ],
           activeOrders: {
             inHouse: [
@@ -405,8 +420,8 @@ describe("fetchKitchenDisplay", () => {
                   {
                     id: "call_1",
                     createdAt: "2026-07-18T10:38:57.580Z",
-                    printMessage: null
-                  }
+                    printMessage: null,
+                  },
                 ],
                 items: [
                   {
@@ -417,9 +432,9 @@ describe("fetchKitchenDisplay", () => {
                     addedAt: "2026-07-18T10:15:06.758Z",
                     printerGroup: {
                       id: "kitchen",
-                      name: "Kitchen"
+                      name: "Kitchen",
                     },
-                    modifiers: []
+                    modifiers: [],
                   },
                   {
                     id: "item_2",
@@ -429,22 +444,22 @@ describe("fetchKitchenDisplay", () => {
                     addedAt: "2026-07-18T10:14:06.758Z",
                     printerGroup: {
                       id: "bar",
-                      name: "Bar"
+                      name: "Bar",
                     },
-                    modifiers: []
-                  }
-                ]
-              }
+                    modifiers: [],
+                  },
+                ],
+              },
             ],
-            takeaway: []
-          }
-        })
-      })
+            takeaway: [],
+          },
+        }),
+      }),
     );
 
     const response = await fetchKitchenDisplay({
       accessToken: "access_123",
-      refreshToken: "refresh_456"
+      refreshToken: "refresh_456",
     });
 
     expect(response.data.tables[0]?.liveOverlay).toMatchObject({
@@ -453,14 +468,14 @@ describe("fetchKitchenDisplay", () => {
       foodOrderedAt: "2026-07-18T10:15:06.758Z",
       calledAt: "2026-07-18T10:38:57.580Z",
       startsAt: "2026-07-18T10:12:43.405Z",
-      endsAt: "2026-07-18T10:42:10.000Z"
+      endsAt: "2026-07-18T10:42:10.000Z",
     });
     expect(response.data.activeOrders.inHouse[0]?.tableCalls).toEqual([
       {
         id: "call_1",
         displayRef: "14",
-        calledAt: "2026-07-18T10:38:57.580Z"
-      }
+        calledAt: "2026-07-18T10:38:57.580Z",
+      },
     ]);
   });
 });

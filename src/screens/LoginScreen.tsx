@@ -4,42 +4,41 @@ import styles from "./LoginScreen.module.css";
 type Props = {
   isLoading: boolean;
   error: string | null;
-  onSubmit: (params: { email: string; password: string }) => Promise<void>;
+  onSubmit: (params: { code: string }) => Promise<void>;
 };
 
 export function LoginScreen({ isLoading, error, onSubmit }: Props) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
 
   return (
     <main className={styles.screen}>
       <section className={styles.card}>
         <h1>Kitchen Display</h1>
-        <p>Sign in to open the live kitchen board.</p>
+        <p>
+          Generate a device pairing code in backoffice to connect this display.
+          It will stay connected until you revoke it.
+        </p>
         <label className={styles.field}>
-          <span>Email</span>
+          <span>Pairing code</span>
           <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-          />
-        </label>
-        <label className={styles.field}>
-          <span>Password</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            type="text"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            maxLength={9}
+            value={code}
+            onChange={(event) =>
+              setCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 8))
+            }
           />
         </label>
         {error ? <p className={styles.error}>{error}</p> : null}
         <button
           type="button"
           className={styles.button}
-          disabled={isLoading || email.trim() === "" || password.trim() === ""}
-          onClick={() => onSubmit({ email: email.trim(), password })}
+          disabled={isLoading || code.length !== 8}
+          onClick={() => onSubmit({ code })}
         >
-          {isLoading ? "Signing in..." : "Sign in"}
+          {isLoading ? "Connecting..." : "Connect display"}
         </button>
       </section>
     </main>

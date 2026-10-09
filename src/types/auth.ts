@@ -4,8 +4,7 @@ export type AuthSession = {
 };
 
 export type SignInParams = {
-  email: string;
-  password: string;
+  code: string;
 };
 
 export type SignInResponse = {

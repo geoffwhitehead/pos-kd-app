@@ -1,3 +1,4 @@
+import { KitchenItemContext } from "./KitchenItemContext";
 import { formatShortTime } from "../lib/format";
 import { groupKitchenItemsByCategory } from "../lib/kitchenOrders";
 import type { ActiveOrderCard } from "../types/kitchenDisplay";
@@ -13,7 +14,9 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
   }
 
   const groupedItems = groupKitchenItemsByCategory(order.items);
-  const callTimes = order.tableCalls.map((call) => formatShortTime(call.calledAt));
+  const callTimes = order.tableCalls.map((call) =>
+    formatShortTime(call.calledAt),
+  );
   const isCalled = order.tableCalls.length > 0;
 
   return (
@@ -29,7 +32,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         color: "#231f1b",
         display: "grid",
         gap: "14px",
-        alignContent: "start"
+        alignContent: "start",
       }}
     >
       <div
@@ -39,7 +42,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           alignItems: "flex-start",
           gap: "12px",
           borderBottom: "1px dashed rgba(35, 31, 27, 0.24)",
-          paddingBottom: "10px"
+          paddingBottom: "10px",
         }}
       >
         <div style={{ display: "grid", gap: "4px" }}>
@@ -48,7 +51,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               margin: 0,
               fontSize: "32px",
               lineHeight: 0.95,
-              letterSpacing: "0.04em"
+              letterSpacing: "0.04em",
             }}
           >
             {order.displayRef}
@@ -61,12 +64,19 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                   fontSize: "11px",
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
-                  color: "#b53a32"
+                  color: "#b53a32",
                 }}
               >
                 Called
               </p>
-              <p style={{ margin: 0, fontSize: "20px", fontWeight: 700, color: "#b53a32" }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: "20px",
+                  fontWeight: 700,
+                  color: "#b53a32",
+                }}
+              >
                 {callTimes.join(", ")}
               </p>
             </>
@@ -80,7 +90,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
             borderRadius: "999px",
             background: "rgba(35, 31, 27, 0.08)",
             padding: "8px 12px",
-            color: "#231f1b"
+            color: "#231f1b",
           }}
         >
           Close
@@ -94,7 +104,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
               display: "grid",
               gap: "8px",
               borderBottom: "1px dashed rgba(35, 31, 27, 0.16)",
-              paddingBottom: "10px"
+              paddingBottom: "10px",
             }}
           >
             <h3
@@ -103,7 +113,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                 fontSize: "12px",
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
-                color: "rgba(35, 31, 27, 0.58)"
+                color: "rgba(35, 31, 27, 0.58)",
               }}
             >
               {group.category.toUpperCase()}
@@ -114,7 +124,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                 margin: 0,
                 padding: 0,
                 display: "grid",
-                gap: "7px"
+                gap: "7px",
               }}
             >
               {group.items.map((item) => (
@@ -125,7 +135,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                     gap: "4px",
                     fontSize: "18px",
                     lineHeight: 1.1,
-                    textTransform: "uppercase"
+                    textTransform: "uppercase",
                   }}
                 >
                   <span>{`${item.quantity} x ${item.name}`.toUpperCase()}</span>
@@ -134,12 +144,13 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                       style={{
                         fontSize: "12px",
                         letterSpacing: "0.04em",
-                        color: "rgba(35, 31, 27, 0.56)"
+                        color: "rgba(35, 31, 27, 0.56)",
                       }}
                     >
                       {item.modifiers.join(", ").toUpperCase()}
                     </span>
                   ) : null}
+                  <KitchenItemContext item={item} />
                 </li>
               ))}
             </ul>

@@ -4,7 +4,7 @@ import { signInRequest } from "./auth";
 vi.mock("../config/api", () => ({
   getApiBaseUrl: () => "https://positive-server.herokuapp.com",
   buildApiUrl: (baseUrl: string, path: string) =>
-    `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`
+    `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`,
 }));
 
 describe("signInRequest", () => {
@@ -19,25 +19,31 @@ describe("signInRequest", () => {
         ok: true,
         headers: new Headers({
           authorization: "Bearer access_123",
-          "x-refresh-token": "refresh_456"
+          "x-refresh-token": "refresh_456",
         }),
         json: async () => ({
           success: true,
           data: {
-            email: "chef@example.com"
-          }
-        })
-      })
+            email: "chef@example.com",
+          },
+        }),
+      }),
     );
 
     await expect(
       signInRequest({
-        email: "chef@example.com",
-        password: "password"
-      })
+        code: "12345678",
+      }),
     ).resolves.toEqual({
       accessToken: "access_123",
-      refreshToken: "refresh_456"
+      refreshToken: "refresh_456",
     });
+    expect(fetch).toHaveBeenCalledWith(
+      "https://positive-server.herokuapp.com/api/security/pair",
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({ code: "12345678" }),
+      }),
+    );
   });
 });

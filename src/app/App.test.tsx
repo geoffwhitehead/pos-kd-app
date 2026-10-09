@@ -7,8 +7,8 @@ vi.mock("../hooks/useKitchenDisplayPolling", () => ({
   useKitchenDisplayPolling: () => ({
     data: null,
     error: null,
-    isLoading: false
-  })
+    isLoading: false,
+  }),
 }));
 
 describe("App", () => {
@@ -18,11 +18,11 @@ describe("App", () => {
     render(
       <AuthProvider>
         <App />
-      </AuthProvider>
+      </AuthProvider>,
     );
 
     expect(
-      screen.getByRole("button", { name: /sign in/i })
+      screen.getByRole("button", { name: /connect display/i }),
     ).toBeInTheDocument();
   });
 });

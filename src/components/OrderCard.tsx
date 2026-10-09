@@ -1,3 +1,4 @@
+import { KitchenItemContext } from "./KitchenItemContext";
 import { formatKitchenItemTime, formatShortTime } from "../lib/format";
 import { getFirstKitchenItemTime } from "../lib/kitchenOrders";
 import type { ActiveOrderCard as ActiveOrderCardType } from "../types/kitchenDisplay";
@@ -10,7 +11,9 @@ type Props = {
 
 export function OrderCard({ order, onPress, size = "default" }: Props) {
   const firstKitchenItemTime = getFirstKitchenItemTime(order.items);
-  const callTimes = order.tableCalls.map((call) => formatShortTime(call.calledAt));
+  const callTimes = order.tableCalls.map((call) =>
+    formatShortTime(call.calledAt),
+  );
   const isCalled = order.tableCalls.length > 0;
   const isCompact = size === "compact";
 
@@ -30,12 +33,14 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
         background:
           "linear-gradient(180deg, rgba(248, 245, 239, 0.98), rgba(238, 232, 223, 0.96))",
         color: "#231f1b",
-        boxShadow: isCompact ? "0 6px 14px rgba(0, 0, 0, 0.12)" : "0 10px 24px rgba(0, 0, 0, 0.16)",
+        boxShadow: isCompact
+          ? "0 6px 14px rgba(0, 0, 0, 0.12)"
+          : "0 10px 24px rgba(0, 0, 0, 0.16)",
         opacity: isCompact ? 0.78 : 1,
         display: "grid",
         gridTemplateRows: "auto auto 1fr",
         gap: isCompact ? "6px" : "8px",
-        alignContent: "start"
+        alignContent: "start",
       }}
     >
       <div
@@ -45,7 +50,7 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
           justifyContent: "space-between",
           gap: "10px",
           borderBottom: "1px dashed rgba(35, 31, 27, 0.22)",
-          paddingBottom: isCompact ? "5px" : "6px"
+          paddingBottom: isCompact ? "5px" : "6px",
         }}
       >
         <div style={{ display: "grid", gap: "3px" }}>
@@ -53,7 +58,7 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
             style={{
               fontSize: isCompact ? "20px" : "24px",
               lineHeight: 0.9,
-              letterSpacing: "-0.04em"
+              letterSpacing: "-0.04em",
             }}
           >
             {order.displayRef}
@@ -69,7 +74,7 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
             textAlign: "right",
             display: "grid",
             gap: isCompact ? "2px" : "3px",
-            justifyItems: "end"
+            justifyItems: "end",
           }}
         >
           {isCalled ? (
@@ -84,7 +89,7 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
                   fontWeight: 800,
                   lineHeight: 1.1,
                   color: "#8f251d",
-                  boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.16) inset"
+                  boxShadow: "0 0 0 1px rgba(255, 255, 255, 0.16) inset",
                 }}
               >
                 Called
@@ -95,7 +100,7 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
                   fontWeight: 700,
                   letterSpacing: "0.02em",
                   textTransform: "none",
-                  color: "#8f251d"
+                  color: "#8f251d",
                 }}
               >
                 {callTimes.join(", ")}
@@ -111,12 +116,17 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
             textTransform: "uppercase",
             letterSpacing: "0.08em",
             color: "rgba(35, 31, 27, 0.52)",
-            fontVariantCaps: "all-small-caps"
+            fontVariantCaps: "all-small-caps",
           }}
         >
           Fired
         </span>
-        <span style={{ fontSize: isCompact ? "12px" : "13px", color: "rgba(35, 31, 27, 0.82)" }}>
+        <span
+          style={{
+            fontSize: isCompact ? "12px" : "13px",
+            color: "rgba(35, 31, 27, 0.82)",
+          }}
+        >
           {formatKitchenItemTime(firstKitchenItemTime)}
         </span>
       </div>
@@ -126,7 +136,7 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
           paddingLeft: isCompact ? "12px" : "14px",
           display: "grid",
           gap: isCompact ? "3px" : "4px",
-          alignContent: "start"
+          alignContent: "start",
         }}
       >
         {order.items.map((item) => (
@@ -136,16 +146,18 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
               lineHeight: 1.15,
               fontSize: isCompact ? "10px" : "11px",
               textTransform: "uppercase",
-              fontVariantCaps: "all-small-caps"
+              fontVariantCaps: "all-small-caps",
             }}
           >
-            <span style={{ fontWeight: 700 }}>{item.quantity} x</span> {item.name}
+            <span style={{ fontWeight: 700 }}>{item.quantity} x</span>{" "}
+            {item.name}
             {item.modifiers.length > 0 ? (
               <span style={{ color: "rgba(35, 31, 27, 0.62)" }}>
                 {" "}
                 ({item.modifiers.join(", ")})
               </span>
             ) : null}
+            <KitchenItemContext item={item} />
           </li>
         ))}
       </ul>

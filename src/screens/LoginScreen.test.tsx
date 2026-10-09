@@ -3,19 +3,14 @@ import { describe, expect, it } from "vitest";
 import { LoginScreen } from "./LoginScreen";
 
 describe("LoginScreen", () => {
-  it("renders email and password fields with a sign-in action", () => {
+  it("requires a pairing code to connect the display", () => {
     render(
-      <LoginScreen
-        isLoading={false}
-        error={null}
-        onSubmit={async () => {}}
-      />
+      <LoginScreen isLoading={false} error={null} onSubmit={async () => {}} />,
     );
 
-    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/pairing code/i)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /sign in/i })
-    ).toBeInTheDocument();
+      screen.getByRole("button", { name: /connect display/i }),
+    ).toBeDisabled();
   });
 });

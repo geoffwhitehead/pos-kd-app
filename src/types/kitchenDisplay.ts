@@ -16,6 +16,9 @@ export type KitchenItem = {
   course: string | null;
   addedAt?: string;
   modifiers: string[];
+  printMessage?: string;
+  offerInstanceId?: string;
+  offerName?: string;
 };
 
 export type PrintCategorySummary = {

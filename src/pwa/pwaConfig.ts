@@ -11,14 +11,14 @@ export const pwaManifest = {
     {
       src: "/icons/icon-192.png",
       sizes: "192x192",
-      type: "image/png"
+      type: "image/png",
     },
     {
       src: "/icons/icon-512.png",
       sizes: "512x512",
-      type: "image/png"
-    }
-  ]
+      type: "image/png",
+    },
+  ],
 } satisfies Exclude<VitePWAOptions["manifest"], false>;
 
 export const pwaOptions = {
@@ -29,6 +29,7 @@ export const pwaOptions = {
   workbox: {
     globPatterns: ["**/*.{js,css,html,png,svg,ico}"],
     navigateFallback: "/index.html",
-    runtimeCaching: []
-  }
+    navigateFallbackDenylist: [/^\/api(?:\/|$)/],
+    runtimeCaching: [],
+  },
 } satisfies Partial<VitePWAOptions>;

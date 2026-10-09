@@ -6,18 +6,26 @@ function getBearerToken(authorizationHeader: string | null) {
 }
 
 export async function signInRequest(
-  params: SignInParams
+  params: SignInParams,
 ): Promise<SignInResponse> {
-  const response = await fetch(buildApiUrl(getApiBaseUrl(), "/api/auth/signin"), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
+  const response = await fetch(
+    buildApiUrl(getApiBaseUrl(), "/api/security/pair"),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Kitchen-Request": "1",
+      },
+      body: JSON.stringify(params),
     },
-    body: JSON.stringify(params)
-  });
+  );
 
   if (!response.ok) {
-    throw new Error("Sign in failed");
+    throw new Error(
+      response.status === 401
+        ? "Pairing code is invalid or expired. Generate a new code in backoffice."
+        : "Could not pair this display. Please try again.",
+    );
   }
 
   const payload = await response.json();
@@ -25,7 +33,8 @@ export async function signInRequest(
     getBearerToken(response.headers.get("authorization")) ??
     payload.accessToken ??
     null;
-  const refreshToken = response.headers.get("x-refresh-token") ?? payload.refreshToken ?? null;
+  const refreshToken =
+    response.headers.get("x-refresh-token") ?? payload.refreshToken ?? null;
 
   if (accessToken == null || refreshToken == null) {
     throw new Error("Sign in response did not include auth tokens");
@@ -33,6 +42,6 @@ export async function signInRequest(
 
   return {
     accessToken,
-    refreshToken
+    refreshToken,
   };
 }
