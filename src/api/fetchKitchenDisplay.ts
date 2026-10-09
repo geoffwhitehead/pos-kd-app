@@ -29,6 +29,7 @@ type LegacyBoardRow = {
   tableRef: string;
   bookingName: string | null;
   bookingTime: string;
+  bookingCreatedAt?: string;
   covers: number | null;
   state: string;
   hasOpenBill: boolean;
@@ -193,6 +194,7 @@ function toBookingSegment(row: LegacyBoardRow): BookingSegment {
     label: row.bookingName ?? row.tableRef,
     covers: row.covers,
     startsAt: row.bookingTime,
+    createdAt: row.bookingCreatedAt,
     endsAt: addMinutes(row.bookingTime, getBookingDurationMinutes(row.covers)),
   };
 }

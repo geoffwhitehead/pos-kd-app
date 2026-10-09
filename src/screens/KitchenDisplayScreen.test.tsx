@@ -49,22 +49,33 @@ describe("KitchenDisplayScreen", () => {
     ).not.toBeInTheDocument();
     const statsBar = screen.getByLabelText(/service stats/i);
 
-    expect(within(statsBar).getByText(/total bookings/i)).toBeInTheDocument();
-    expect(within(statsBar).getByText(/total covers/i)).toBeInTheDocument();
+    expect(
+      within(statsBar).getByText(/bookings remaining/i),
+    ).toBeInTheDocument();
+    expect(within(statsBar).getByText(/covers remaining/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/active tables/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/kitchen cheques/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/ordering soon/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/due in next 30/i)).toBeInTheDocument();
-    expect(within(statsBar).getByText(/due in 60 min/i)).toBeInTheDocument();
+    expect(within(statsBar).getByText(/due in 30–60 min/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/takeaway live/i)).toBeInTheDocument();
     expect(within(statsBar).queryByText(/card tips/i)).not.toBeInTheDocument();
     expect(within(statsBar).getByText(/time/i)).toBeInTheDocument();
-    expect(within(statsBar).getByText("8")).toBeInTheDocument();
-    expect(within(statsBar).getByText("2")).toBeInTheDocument();
+    expect(
+      within(statsBar).queryByText(/total bookings|total covers/i),
+    ).not.toBeInTheDocument();
     expect(within(statsBar).getByText("19:42")).toBeInTheDocument();
     expect(within(statsBar).getAllByText("0 covers")).toHaveLength(3);
-    expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();
-    expect(within(statsBar).getByText("4 remaining")).toBeInTheDocument();
+    expect(
+      within(
+        within(statsBar).getByText("Bookings Remaining").parentElement!,
+      ).getByText("1"),
+    ).toBeInTheDocument();
+    expect(
+      within(
+        within(statsBar).getByText("Covers Remaining").parentElement!,
+      ).getByText("4"),
+    ).toBeInTheDocument();
     expect(within(statsBar).getAllByText("0")).toHaveLength(2);
     expect(
       screen.queryByRole("heading", { name: /service board/i }),
@@ -224,9 +235,11 @@ describe("KitchenDisplayScreen", () => {
     expect(
       screen.queryByTestId("live-segment-food_ordered-12"),
     ).not.toBeInTheDocument();
-    expect(within(statsBar).getByText(/total bookings/i)).toBeInTheDocument();
-    expect(within(statsBar).getByText("2")).toBeInTheDocument();
-    expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();
+    expect(
+      within(
+        within(statsBar).getByText("Bookings Remaining").parentElement!,
+      ).getByText("1"),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("Eat-In")).toHaveTextContent(
       /no active orders/i,
     );

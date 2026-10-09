@@ -2,7 +2,7 @@ import type {
   BookingSegment,
   KitchenDisplayResponse,
   RetainedActiveOrder,
-  ServiceBoardRow
+  ServiceBoardRow,
 } from "../types/kitchenDisplay";
 import { getServiceDateString } from "./time";
 import { buildTimelineSlotsForWindow } from "./timeline";
@@ -21,8 +21,8 @@ export function getBookingTotals(rows: ServiceBoardRow[]) {
     },
     {
       totalBookings: 0,
-      totalCovers: 0
-    }
+      totalCovers: 0,
+    },
   );
 }
 
@@ -42,24 +42,24 @@ function getUpcomingBookingTotals(rows: ServiceBoardRow[], nowIso: string) {
 
           return {
             bookings: bookingTotals.bookings + 1,
-            covers: bookingTotals.covers + (booking.covers ?? 0)
+            covers: bookingTotals.covers + (booking.covers ?? 0),
           };
         },
         {
           bookings: 0,
-          covers: 0
-        }
+          covers: 0,
+        },
       );
 
       return {
         bookings: totals.bookings + rowTotals.bookings,
-        covers: totals.covers + rowTotals.covers
+        covers: totals.covers + rowTotals.covers,
       };
     },
     {
       bookings: 0,
-      covers: 0
-    }
+      covers: 0,
+    },
   );
 }
 
@@ -78,28 +78,31 @@ function getRemainingBookingTotals(rows: ServiceBoardRow[], nowIso: string) {
 
           return {
             bookings: bookingTotals.bookings + 1,
-            covers: bookingTotals.covers + (booking.covers ?? 0)
+            covers: bookingTotals.covers + (booking.covers ?? 0),
           };
         },
         {
           bookings: 0,
-          covers: 0
-        }
+          covers: 0,
+        },
       );
 
       return {
         bookings: totals.bookings + rowTotals.bookings,
-        covers: totals.covers + rowTotals.covers
+        covers: totals.covers + rowTotals.covers,
       };
     },
     {
       bookings: 0,
-      covers: 0
-    }
+      covers: 0,
+    },
   );
 }
 
-function getRetainedTotals(retainedOrders: RetainedActiveOrder[], nowIso: string) {
+function getRetainedTotals(
+  retainedOrders: RetainedActiveOrder[],
+  nowIso: string,
+) {
   const serviceDate = getServiceDateString(nowIso);
 
   return retainedOrders.reduce(
@@ -110,19 +113,19 @@ function getRetainedTotals(retainedOrders: RetainedActiveOrder[], nowIso: string
 
       return {
         bookings: totals.bookings + 1,
-        covers: totals.covers + retainedOrder.inferredCovers
+        covers: totals.covers + retainedOrder.inferredCovers,
       };
     },
     {
       bookings: 0,
-      covers: 0
-    }
+      covers: 0,
+    },
   );
 }
 
 export function getServiceStats(
   data: KitchenDisplayResponse | null,
-  retainedOrders: RetainedActiveOrder[] = []
+  retainedOrders: RetainedActiveOrder[] = [],
 ) {
   const rows = data?.tables ?? [];
   const nowIso = data?.timeline.now ?? new Date().toISOString();
@@ -135,7 +138,7 @@ export function getServiceStats(
   const latestTipsSnapshot = [
     ...(data?.activeOrders.inHouse ?? []),
     ...(data?.activeOrders.takeaway ?? []),
-    ...(data?.activeOrders.unassigned ?? [])
+    ...(data?.activeOrders.unassigned ?? []),
   ].reduce<{
     updatedAtMs: number;
     total: number;
@@ -145,7 +148,7 @@ export function getServiceStats(
     if (latestOrder == null || updatedAtMs > latestOrder.updatedAtMs) {
       return {
         updatedAtMs,
-        total: order.billPeriodClosedServiceChargeTotal
+        total: order.billPeriodClosedServiceChargeTotal,
       };
     }
 
@@ -166,18 +169,18 @@ export function getServiceStats(
 
           return {
             tables: bookingTotals.tables + 1,
-            covers: bookingTotals.covers + (booking.covers ?? 0)
+            covers: bookingTotals.covers + (booking.covers ?? 0),
           };
         },
-        { tables: 0, covers: 0 }
+        { tables: 0, covers: 0 },
       );
 
       return {
         tables: totalsForWindow.tables + rowDue.tables,
-        covers: totalsForWindow.covers + rowDue.covers
+        covers: totalsForWindow.covers + rowDue.covers,
       };
     },
-    { tables: 0, covers: 0 }
+    { tables: 0, covers: 0 },
   );
   const dueIn60 = rows.reduce(
     (totalsForWindow, row) => {
@@ -185,25 +188,26 @@ export function getServiceStats(
         (bookingTotals, booking) => {
           const startsAt = new Date(booking.startsAt).getTime();
           const inSixtyMinutes = now + 60 * 60_000;
+          const inThirtyMinutes = now + 30 * 60_000;
 
-          if (startsAt < now || startsAt >= inSixtyMinutes) {
+          if (startsAt < inThirtyMinutes || startsAt >= inSixtyMinutes) {
             return bookingTotals;
           }
 
           return {
             tables: bookingTotals.tables + 1,
-            covers: bookingTotals.covers + (booking.covers ?? 0)
+            covers: bookingTotals.covers + (booking.covers ?? 0),
           };
         },
-        { tables: 0, covers: 0 }
+        { tables: 0, covers: 0 },
       );
 
       return {
         tables: totalsForWindow.tables + rowDue.tables,
-        covers: totalsForWindow.covers + rowDue.covers
+        covers: totalsForWindow.covers + rowDue.covers,
       };
     },
-    { tables: 0, covers: 0 }
+    { tables: 0, covers: 0 },
   );
   const orderingSoon = rows.reduce(
     (totalsForSoon, row) => {
@@ -211,23 +215,28 @@ export function getServiceStats(
         return totalsForSoon;
       }
 
-      const overlappingBookingCovers = row.bookings.reduce((covers, booking) => {
-        const overlapsOverlay =
-          new Date(booking.endsAt).getTime() > new Date(row.liveOverlay!.startsAt).getTime() &&
-          new Date(booking.startsAt).getTime() < new Date(row.liveOverlay!.endsAt).getTime();
+      const overlappingBookingCovers = row.bookings.reduce(
+        (covers, booking) => {
+          const overlapsOverlay =
+            new Date(booking.endsAt).getTime() >
+              new Date(row.liveOverlay!.startsAt).getTime() &&
+            new Date(booking.startsAt).getTime() <
+              new Date(row.liveOverlay!.endsAt).getTime();
 
-        return overlapsOverlay ? covers + (booking.covers ?? 0) : covers;
-      }, 0);
+          return overlapsOverlay ? covers + (booking.covers ?? 0) : covers;
+        },
+        0,
+      );
 
       return {
         tables: totalsForSoon.tables + 1,
-        covers: totalsForSoon.covers + overlappingBookingCovers
+        covers: totalsForSoon.covers + overlappingBookingCovers,
       };
     },
     {
       tables: 0,
-      covers: 0
-    }
+      covers: 0,
+    },
   );
 
   return {
@@ -242,7 +251,7 @@ export function getServiceStats(
     dueNext30,
     dueIn60,
     orderingSoonTables: orderingSoon.tables,
-    orderingSoonCovers: orderingSoon.covers
+    orderingSoonCovers: orderingSoon.covers,
   };
 }
 
@@ -250,7 +259,7 @@ function arrivesWithinLookbackWindow(
   booking: BookingSegment,
   slotStartIso: string,
   minimumMinutesAgo: number,
-  maximumMinutesAgo: number
+  maximumMinutesAgo: number,
 ) {
   const slotStart = new Date(slotStartIso).getTime();
   const bookingStart = new Date(booking.startsAt).getTime();
@@ -263,29 +272,45 @@ function arrivesWithinLookbackWindow(
 function countBookingsForBand(
   rows: ServiceBoardRow[],
   slotStartIso: string,
-  band: PressureBand
+  band: PressureBand,
 ) {
-  const [minimumMinutesAgo, maximumMinutesAgo] = band === "0-30" ? [0, 30] : [30, 60];
+  const [minimumMinutesAgo, maximumMinutesAgo] =
+    band === "0-30" ? [0, 30] : [30, 60];
 
   return rows.reduce((count, row) => {
     return (
       count +
       row.bookings.filter((booking) =>
-        arrivesWithinLookbackWindow(booking, slotStartIso, minimumMinutesAgo, maximumMinutesAgo)
+        arrivesWithinLookbackWindow(
+          booking,
+          slotStartIso,
+          minimumMinutesAgo,
+          maximumMinutesAgo,
+        ),
       ).length
     );
   }, 0);
 }
 
-function countCoversForBand(rows: ServiceBoardRow[], slotStartIso: string, band: PressureBand) {
-  const [minimumMinutesAgo, maximumMinutesAgo] = band === "0-30" ? [0, 30] : [30, 60];
+function countCoversForBand(
+  rows: ServiceBoardRow[],
+  slotStartIso: string,
+  band: PressureBand,
+) {
+  const [minimumMinutesAgo, maximumMinutesAgo] =
+    band === "0-30" ? [0, 30] : [30, 60];
 
   return rows.reduce((covers, row) => {
     return (
       covers +
       row.bookings.reduce((bookingCovers, booking) => {
         if (
-          !arrivesWithinLookbackWindow(booking, slotStartIso, minimumMinutesAgo, maximumMinutesAgo)
+          !arrivesWithinLookbackWindow(
+            booking,
+            slotStartIso,
+            minimumMinutesAgo,
+            maximumMinutesAgo,
+          )
         ) {
           return bookingCovers;
         }
@@ -301,13 +326,16 @@ export function getBookingPressureBySlot(
   visibleTimeline: KitchenDisplayResponse["timeline"] & {
     startIso: string;
     endIso: string;
-  }
+  },
 ) {
-  const slots = buildTimelineSlotsForWindow(visibleTimeline.startIso, visibleTimeline.endIso);
+  const slots = buildTimelineSlotsForWindow(
+    visibleTimeline.startIso,
+    visibleTimeline.endIso,
+  );
 
   return slots.slice(0, -1).map((slot, index) => {
     const slotStartIso = new Date(
-      new Date(visibleTimeline.startIso).getTime() + index * 30 * 60 * 1000
+      new Date(visibleTimeline.startIso).getTime() + index * 30 * 60 * 1000,
     ).toISOString();
 
     return {
@@ -315,7 +343,7 @@ export function getBookingPressureBySlot(
       starters: countBookingsForBand(rows, slotStartIso, "0-30"),
       starterCovers: countCoversForBand(rows, slotStartIso, "0-30"),
       mains: countBookingsForBand(rows, slotStartIso, "30-60"),
-      mainCovers: countCoversForBand(rows, slotStartIso, "30-60")
+      mainCovers: countCoversForBand(rows, slotStartIso, "30-60"),
     };
   });
 }

@@ -36,6 +36,7 @@ export type TableCall = {
 
 export type BookingSegment = {
   id: string;
+  createdAt?: string;
   label: string;
   covers: number | null;
   startsAt: string;

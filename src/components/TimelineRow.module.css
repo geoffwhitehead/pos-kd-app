@@ -1,0 +1,18 @@
+.cell {
+  container-type: inline-size;
+}
+
+.badge {
+  display: none;
+  margin-left: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@container (min-width: 36px) {
+  .badge {
+    display: inline;
+  }
+}

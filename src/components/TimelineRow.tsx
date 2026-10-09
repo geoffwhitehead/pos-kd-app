@@ -3,6 +3,7 @@ import {
   buildTimelineSlots,
   buildTimelineSlotsForWindow,
 } from "../lib/timeline";
+import styles from "./TimelineRow.module.css";
 import type {
   KitchenDisplayResponse,
   LiveTableStatus,
@@ -10,6 +11,7 @@ import type {
 } from "../types/kitchenDisplay";
 
 type Props = {
+  bookingsAvailable?: boolean;
   row: ServiceBoardRow;
   timeline: KitchenDisplayResponse["timeline"] & {
     serviceDate?: string;
@@ -102,21 +104,28 @@ function buildRelativeSegmentStyle(
   },
 ) {
   const overlayLeft = Number.parseFloat(
-    buildSegmentStyle(overlayStartIso, overlayEndIso, bounds).left,
+    buildSegmentStyle(overlayStartIso, overlayEndIso, bounds, 0).left,
   );
   const overlayWidth = Number.parseFloat(
-    buildSegmentStyle(overlayStartIso, overlayEndIso, bounds).width,
+    buildSegmentStyle(overlayStartIso, overlayEndIso, bounds, 0).width,
   );
   const segmentLeft = Number.parseFloat(
-    buildSegmentStyle(startIso, endIso, bounds).left,
+    buildSegmentStyle(startIso, endIso, bounds, 0).left,
   );
   const segmentWidth = Number.parseFloat(
-    buildSegmentStyle(startIso, endIso, bounds).width,
+    buildSegmentStyle(startIso, endIso, bounds, 0).width,
   );
 
+  const left =
+    overlayWidth > 0
+      ? Math.max(
+          0,
+          Math.min(100, ((segmentLeft - overlayLeft) / overlayWidth) * 100),
+        )
+      : 0;
   return {
-    left: `${Math.max(0, ((segmentLeft - overlayLeft) / overlayWidth) * 100)}%`,
-    width: `${Math.max(2, (segmentWidth / overlayWidth) * 100)}%`,
+    left: `${left}%`,
+    width: `${overlayWidth > 0 ? Math.min(100 - left, (segmentWidth / overlayWidth) * 100) : 0}%`,
   };
 }
 
@@ -140,6 +149,7 @@ export function TimelineRow({
   timeline,
   layout = DEFAULT_LAYOUT,
   onSelect,
+  bookingsAvailable = true,
 }: Props) {
   const serviceDate = timeline.serviceDate ?? timeline.now.slice(0, 10);
   const timelineSlots =
@@ -155,14 +165,26 @@ export function TimelineRow({
     startIso: timeline.startIso,
     endIso: timeline.endIso,
   };
-  const liveOverlay = row.liveOverlay;
-  const liveSegments = buildLiveSegments(row.liveOverlay);
+  const liveOverlay =
+    row.liveOverlay && !row.liveOverlay.isRetained
+      ? { ...row.liveOverlay, endsAt: timeline.now }
+      : row.liveOverlay;
+  const liveSegments = buildLiveSegments(liveOverlay);
   const liveCallTimes = liveOverlay?.tableCalls ?? [];
   const mainsCount =
     liveOverlay?.categorySummary.find((summary) => summary.label === "Mains")
       ?.count ?? 0;
   const liveLabel = mainsCount > 0 ? String(mainsCount) : "";
   const isRetainedOverlay = liveOverlay?.isRetained === true;
+  const isWalkIn =
+    bookingsAvailable &&
+    liveOverlay != null &&
+    !isRetainedOverlay &&
+    row.bookings.length === 0;
+  const isNewBooking = (createdAt?: string) => {
+    const age = Date.parse(timeline.now) - Date.parse(createdAt ?? "");
+    return age >= 0 && age <= 4 * 60 * 60 * 1000;
+  };
 
   return (
     <div
@@ -209,13 +231,17 @@ export function TimelineRow({
             <button
               key={booking.id}
               type="button"
+              className={styles.cell}
+              data-new-booking={isNewBooking(booking.createdAt)}
               onClick={() => onSelect(row.displayRef)}
               style={{
                 ...buildSegmentStyle(booking.startsAt, booking.endsAt, bounds),
                 position: "absolute",
                 top: `${layout.bookingTop}px`,
                 height: `${layout.bookingHeight}px`,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: isNewBooking(booking.createdAt)
+                  ? "2px solid #69d391"
+                  : "1px solid rgba(255,255,255,0.06)",
                 borderRadius: "6px",
                 background: "rgba(90, 93, 100, 0.42)",
                 color: "rgba(255,255,255,0.72)",
@@ -235,17 +261,30 @@ export function TimelineRow({
                 }}
               >
                 {booking.covers ?? ""}
+                {isNewBooking(booking.createdAt) ? (
+                  <span
+                    className={styles.badge}
+                    aria-label="New reservation"
+                    title="Booked within the last four hours"
+                  >
+                    N
+                  </span>
+                ) : null}
               </span>
             </button>
           ) : (
             <div
               key={booking.id}
+              className={styles.cell}
+              data-new-booking={isNewBooking(booking.createdAt)}
               style={{
                 ...buildSegmentStyle(booking.startsAt, booking.endsAt, bounds),
                 position: "absolute",
                 top: `${layout.bookingTop}px`,
                 height: `${layout.bookingHeight}px`,
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: isNewBooking(booking.createdAt)
+                  ? "2px solid #69d391"
+                  : "1px solid rgba(255,255,255,0.06)",
                 borderRadius: "6px",
                 background: "rgba(90, 93, 100, 0.42)",
                 color: "rgba(255,255,255,0.72)",
@@ -265,6 +304,15 @@ export function TimelineRow({
                 }}
               >
                 {booking.covers ?? ""}
+                {isNewBooking(booking.createdAt) ? (
+                  <span
+                    className={styles.badge}
+                    aria-label="New reservation"
+                    title="Booked within the last four hours"
+                  >
+                    N
+                  </span>
+                ) : null}
               </span>
             </div>
           ),
@@ -272,20 +320,30 @@ export function TimelineRow({
         {liveOverlay ? (
           <button
             type="button"
+            className={styles.cell}
+            data-walk-in={isWalkIn}
+            title={
+              isWalkIn
+                ? "Possible walk-in: no ResOS reservation on this table"
+                : undefined
+            }
             onClick={() => onSelect(row.displayRef)}
             style={{
               ...buildSegmentStyle(
                 liveOverlay.startsAt,
                 liveOverlay.endsAt,
                 bounds,
+                0,
               ),
               position: "absolute",
               top: `${layout.liveTop}px`,
               height: `${layout.liveHeight}px`,
-              border: isRetainedOverlay
-                ? "1px solid rgba(255,255,255,0.08)"
-                : "1px solid rgba(255,255,255,0.16)",
-              borderRadius: "7px",
+              border: isWalkIn
+                ? "2px solid #80c9ef"
+                : isRetainedOverlay
+                  ? "1px solid rgba(255,255,255,0.08)"
+                  : "1px solid rgba(255,255,255,0.16)",
+              borderRadius: isRetainedOverlay ? "7px" : "7px 0 0 7px",
               background: isRetainedOverlay
                 ? "rgba(90, 93, 100, 0.42)"
                 : "rgba(18, 23, 20, 0.18)",
@@ -299,6 +357,7 @@ export function TimelineRow({
               boxShadow: isRetainedOverlay
                 ? "none"
                 : "0 6px 18px rgba(0,0,0,0.18)",
+              isolation: "isolate",
             }}
             aria-label={`Live order ${row.displayRef}`}
           >
@@ -317,12 +376,17 @@ export function TimelineRow({
                   position: "absolute",
                   insetBlock: 0,
                   background: LIVE_STATUS_COLORS[segment.status],
+                  zIndex: -1,
                   borderTopLeftRadius: index === 0 ? "7px" : 0,
                   borderBottomLeftRadius: index === 0 ? "7px" : 0,
                   borderTopRightRadius:
-                    index === liveSegments.length - 1 ? "7px" : 0,
+                    isRetainedOverlay && index === liveSegments.length - 1
+                      ? "7px"
+                      : 0,
                   borderBottomRightRadius:
-                    index === liveSegments.length - 1 ? "7px" : 0,
+                    isRetainedOverlay && index === liveSegments.length - 1
+                      ? "7px"
+                      : 0,
                 }}
               />
             ))}
@@ -359,6 +423,11 @@ export function TimelineRow({
               }}
             >
               {liveLabel}
+              {isWalkIn ? (
+                <span className={styles.badge} aria-label="Possible walk-in">
+                  W
+                </span>
+              ) : null}
             </span>
           </button>
         ) : null}

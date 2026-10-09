@@ -1,7 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { getBookingPressureBySlot, getServiceStats } from "./boardStats";
+import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 
 describe("boardStats", () => {
+  it("uses exclusive arrival windows with no overlap at 30 minutes", () => {
+    const data = structuredClone(sampleKitchenDisplayResponse);
+    const now = Date.parse(data.timeline.now);
+    data.tables = [
+      {
+        ...data.tables[0],
+        liveOverlay: null,
+        bookings: [-1, 0, 29, 30, 59, 60].map((minutes) => ({
+          id: String(minutes),
+          label: "Booking",
+          covers: 2,
+          startsAt: new Date(now + minutes * 60000).toISOString(),
+          endsAt: new Date(now + (minutes + 90) * 60000).toISOString(),
+        })),
+      },
+    ];
+    const stats = getServiceStats(data);
+    expect(stats.dueNext30).toEqual({ tables: 2, covers: 4 });
+    expect(stats.dueIn60).toEqual({ tables: 2, covers: 4 });
+  });
   it("splits booking pressure into 0-30 and 30-60 minute lookback bands", () => {
     const pressure = getBookingPressureBySlot(
       [
@@ -15,10 +36,10 @@ describe("boardStats", () => {
               label: "Walker",
               covers: 4,
               startsAt: "2026-07-18T18:00:00Z",
-              endsAt: "2026-07-18T19:30:00Z"
-            }
+              endsAt: "2026-07-18T19:30:00Z",
+            },
           ],
-          liveOverlay: null
+          liveOverlay: null,
         },
         {
           displayRef: "13",
@@ -30,33 +51,33 @@ describe("boardStats", () => {
               label: "Smith",
               covers: 2,
               startsAt: "2026-07-18T17:50:00Z",
-              endsAt: "2026-07-18T19:20:00Z"
+              endsAt: "2026-07-18T19:20:00Z",
             },
             {
               id: "booking_13_2",
               label: "Jones",
               covers: 3,
               startsAt: "2026-07-18T17:20:00Z",
-              endsAt: "2026-07-18T18:50:00Z"
-            }
+              endsAt: "2026-07-18T18:50:00Z",
+            },
           ],
-          liveOverlay: null
-        }
+          liveOverlay: null,
+        },
       ],
       {
         startHour: 18,
         endHour: 20,
         now: "2026-07-18T18:42:10Z",
         startIso: "2026-07-18T18:00:00.000Z",
-        endIso: "2026-07-18T20:00:00.000Z"
-      }
+        endIso: "2026-07-18T20:00:00.000Z",
+      },
     );
 
     expect(pressure).toEqual([
       { slot: "19:00", starters: 1, starterCovers: 2, mains: 1, mainCovers: 3 },
       { slot: "19:30", starters: 1, starterCovers: 4, mains: 1, mainCovers: 2 },
       { slot: "20:00", starters: 0, starterCovers: 0, mains: 1, mainCovers: 4 },
-      { slot: "20:30", starters: 0, starterCovers: 0, mains: 0, mainCovers: 0 }
+      { slot: "20:30", starters: 0, starterCovers: 0, mains: 0, mainCovers: 0 },
     ]);
   });
 
@@ -69,7 +90,7 @@ describe("boardStats", () => {
       timeline: {
         startHour: 12,
         endHour: 22,
-        now: "2026-07-18T18:42:10Z"
+        now: "2026-07-18T18:42:10Z",
       },
       tables: [
         {
@@ -82,8 +103,8 @@ describe("boardStats", () => {
               label: "Walker",
               covers: 4,
               startsAt: "2026-07-18T19:00:00Z",
-              endsAt: "2026-07-18T21:00:00Z"
-            }
+              endsAt: "2026-07-18T21:00:00Z",
+            },
           ],
           liveOverlay: {
             billId: "bill_12",
@@ -98,8 +119,8 @@ describe("boardStats", () => {
             calledAt: null,
             tableCalls: [],
             categorySummary: [],
-            hasBookingMatch: true
-          }
+            hasBookingMatch: true,
+          },
         },
         {
           displayRef: "15",
@@ -111,8 +132,8 @@ describe("boardStats", () => {
               label: "Jones",
               covers: 2,
               startsAt: "2026-07-18T19:10:00Z",
-              endsAt: "2026-07-18T20:40:00Z"
-            }
+              endsAt: "2026-07-18T20:40:00Z",
+            },
           ],
           liveOverlay: {
             billId: "bill_15",
@@ -127,8 +148,8 @@ describe("boardStats", () => {
             calledAt: null,
             tableCalls: [],
             categorySummary: [],
-            hasBookingMatch: false
-          }
+            hasBookingMatch: false,
+          },
         },
         {
           displayRef: "16",
@@ -140,11 +161,11 @@ describe("boardStats", () => {
               label: "Late booking",
               covers: 6,
               startsAt: "2026-07-18T19:20:00Z",
-              endsAt: "2026-07-18T21:50:00Z"
-            }
+              endsAt: "2026-07-18T21:50:00Z",
+            },
           ],
-          liveOverlay: null
-        }
+          liveOverlay: null,
+        },
       ],
       activeOrders: {
         inHouse: [
@@ -168,10 +189,10 @@ describe("boardStats", () => {
                 printCategory: "Mains",
                 course: null,
                 addedAt: "2026-07-18T18:12:00Z",
-                modifiers: []
-              }
+                modifiers: [],
+              },
             ],
-            tableCalls: []
+            tableCalls: [],
           },
           {
             displayRef: "15",
@@ -186,8 +207,8 @@ describe("boardStats", () => {
             status: "active",
             categorySummary: [],
             items: [],
-            tableCalls: []
-          }
+            tableCalls: [],
+          },
         ],
         takeaway: [
           {
@@ -203,11 +224,11 @@ describe("boardStats", () => {
             status: "called",
             categorySummary: [],
             items: [],
-            tableCalls: []
-          }
+            tableCalls: [],
+          },
         ],
-        unassigned: []
-      }
+        unassigned: [],
+      },
     });
 
     expect(stats).toMatchObject({
@@ -218,15 +239,15 @@ describe("boardStats", () => {
       takeawayLive: 1,
       dueNext30: {
         tables: 2,
-        covers: 6
+        covers: 6,
       },
       dueIn60: {
-        tables: 3,
-        covers: 12
+        tables: 1,
+        covers: 6,
       },
       cardTipsTotal: 183.5,
       orderingSoonTables: 1,
-      orderingSoonCovers: 0
+      orderingSoonCovers: 0,
     });
   });
 
@@ -239,7 +260,7 @@ describe("boardStats", () => {
       timeline: {
         startHour: 12,
         endHour: 22,
-        now: "2026-07-18T18:42:10Z"
+        now: "2026-07-18T18:42:10Z",
       },
       tables: [],
       activeOrders: {
@@ -257,8 +278,8 @@ describe("boardStats", () => {
             status: "food_ordered",
             categorySummary: [],
             items: [],
-            tableCalls: []
-          }
+            tableCalls: [],
+          },
         ],
         takeaway: [
           {
@@ -274,11 +295,11 @@ describe("boardStats", () => {
             status: "called",
             categorySummary: [],
             items: [],
-            tableCalls: []
-          }
+            tableCalls: [],
+          },
         ],
-        unassigned: []
-      }
+        unassigned: [],
+      },
     });
 
     expect(stats.cardTipsTotal).toBe(26);
@@ -294,7 +315,7 @@ describe("boardStats", () => {
         timeline: {
           startHour: 12,
           endHour: 22,
-          now: "2026-07-18T18:42:10Z"
+          now: "2026-07-18T18:42:10Z",
         },
         tables: [
           {
@@ -307,10 +328,10 @@ describe("boardStats", () => {
                 label: "Walker",
                 covers: 4,
                 startsAt: "2026-07-18T18:00:00Z",
-                endsAt: "2026-07-18T19:30:00Z"
-              }
+                endsAt: "2026-07-18T19:30:00Z",
+              },
             ],
-            liveOverlay: null
+            liveOverlay: null,
           },
           {
             displayRef: "16",
@@ -322,11 +343,11 @@ describe("boardStats", () => {
                 label: "Lesley",
                 covers: 4,
                 startsAt: "2026-07-18T20:00:00Z",
-                endsAt: "2026-07-18T21:30:00Z"
-              }
+                endsAt: "2026-07-18T21:30:00Z",
+              },
             ],
-            liveOverlay: null
-          }
+            liveOverlay: null,
+          },
         ],
         activeOrders: {
           inHouse: [
@@ -343,12 +364,12 @@ describe("boardStats", () => {
               status: "food_ordered",
               categorySummary: [],
               items: [],
-              tableCalls: []
-            }
+              tableCalls: [],
+            },
           ],
           takeaway: [],
-          unassigned: []
-        }
+          unassigned: [],
+        },
       },
       [
         {
@@ -371,7 +392,7 @@ describe("boardStats", () => {
             status: "food_ordered",
             categorySummary: [],
             items: [],
-            tableCalls: []
+            tableCalls: [],
           },
           liveOverlay: {
             billId: "bill_12",
@@ -386,8 +407,8 @@ describe("boardStats", () => {
             calledAt: null,
             tableCalls: [],
             categorySummary: [],
-            hasBookingMatch: true
-          }
+            hasBookingMatch: true,
+          },
         },
         {
           billId: "bill_walkin_15",
@@ -409,7 +430,7 @@ describe("boardStats", () => {
             status: "active",
             categorySummary: [],
             items: [],
-            tableCalls: []
+            tableCalls: [],
           },
           liveOverlay: {
             billId: "bill_walkin_15",
@@ -424,10 +445,10 @@ describe("boardStats", () => {
             calledAt: null,
             tableCalls: [],
             categorySummary: [],
-            hasBookingMatch: false
-          }
-        }
-      ]
+            hasBookingMatch: false,
+          },
+        },
+      ],
     );
 
     expect(stats).toMatchObject({
@@ -435,7 +456,7 @@ describe("boardStats", () => {
       totalBookings: 3,
       totalBookingsRemaining: 1,
       totalCovers: 8,
-      totalCoversRemaining: 4
+      totalCoversRemaining: 4,
     });
   });
 });

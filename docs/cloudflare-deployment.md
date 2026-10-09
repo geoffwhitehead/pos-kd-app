@@ -1,12 +1,12 @@
 # Kitchen display on Cloudflare
 
-Deployed 9 October 2026 to Worker `pos-kd-app` in account
+Initially deployed 9 October 2026 as `pos-kd-app`; the current Worker is `pos-kitchen` in account
 `70ac66aefe915b84ea0517e253f40d2e`.
 
 - Production: https://kitchen.nomi.restaurant
-- Worker address: https://pos-kd-app.manager-70a.workers.dev
-- API upstream: https://positive-server.manager-70a.workers.dev
-- Version: `36935bd0-5717-45a0-a381-f42f40119bb4`
+- Worker address: https://pos-kitchen.manager-70a.workers.dev
+- API upstream: https://pos-server.manager-70a.workers.dev
+- Initial deployment version: `36935bd0-5717-45a0-a381-f42f40119bb4`
 
 The Vercel deployment was unused and has not been changed or removed.
 This deployment includes the current local working tree. Git auto-deploy is not

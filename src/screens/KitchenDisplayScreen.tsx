@@ -286,18 +286,18 @@ export function KitchenDisplayScreen({
       >
         <section className={styles.statsBar} aria-label="Service stats">
           <div className={styles.statCard}>
-            <span className={styles.statLabel}>Total Bookings</span>
-            <strong className={styles.statValue}>{stats.totalBookings}</strong>
-            <span className={styles.statMeta}>
-              {stats.totalBookingsRemaining} remaining
-            </span>
+            <span className={styles.statLabel}>Bookings Remaining</span>
+            <strong className={styles.statValue}>
+              {stats.totalBookingsRemaining}
+            </strong>
+            <span className={styles.statMeta}>Expected today</span>
           </div>
           <div className={styles.statCard}>
-            <span className={styles.statLabel}>Total Covers</span>
-            <strong className={styles.statValue}>{stats.totalCovers}</strong>
-            <span className={styles.statMeta}>
-              {stats.totalCoversRemaining} remaining
-            </span>
+            <span className={styles.statLabel}>Covers Remaining</span>
+            <strong className={styles.statValue}>
+              {stats.totalCoversRemaining}
+            </strong>
+            <span className={styles.statMeta}>Expected today</span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Active Tables</span>
@@ -326,7 +326,7 @@ export function KitchenDisplayScreen({
             </span>
           </div>
           <div className={styles.statCard}>
-            <span className={styles.statLabel}>Due In 60 Min</span>
+            <span className={styles.statLabel}>Due In 30–60 Min</span>
             <strong className={styles.statValue}>{stats.dueIn60.tables}</strong>
             <span className={styles.statMeta}>
               {stats.dueIn60.covers} covers
@@ -359,6 +359,7 @@ export function KitchenDisplayScreen({
         <section className={styles.columns}>
           <section aria-label="Service board panel" className={styles.panel}>
             <ServiceBoard
+              bookingsAvailable={data?.bookingsStatus === "ok"}
               rows={boardRows}
               timeline={
                 data

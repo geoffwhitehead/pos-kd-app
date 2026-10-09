@@ -3,10 +3,23 @@ import {
   buildSegmentStyle,
   buildTimelineSlots,
   buildVisibleBoardTimeline,
-  toTimelinePercent
+  toTimelinePercent,
 } from "./timeline";
 
 describe("timeline helpers", () => {
+  it("keeps minute precision and permits exact short active bar widths", () => {
+    const bounds = { startHour: 12, endHour: 22, serviceDate: "2026-07-18" };
+    const style = buildSegmentStyle(
+      "2026-07-18T18:00:00Z",
+      "2026-07-18T18:01:00Z",
+      bounds,
+      0,
+    );
+    expect(Number.parseFloat(style.width)).toBeCloseTo(1 / 6);
+    expect(toTimelinePercent("2026-07-18T18:01:00Z", bounds)).toBeCloseTo(
+      70 + 1 / 6,
+    );
+  });
   it("builds 30-minute slots from 12:00 to 22:00", () => {
     expect(buildTimelineSlots(12, 22)).toEqual([
       "12:00",
@@ -29,7 +42,7 @@ describe("timeline helpers", () => {
       "20:30",
       "21:00",
       "21:30",
-      "22:00"
+      "22:00",
     ]);
   });
 
@@ -38,8 +51,8 @@ describe("timeline helpers", () => {
       toTimelinePercent("2026-07-18T17:00:00Z", {
         startHour: 12,
         endHour: 22,
-        serviceDate: "2026-07-18"
-      })
+        serviceDate: "2026-07-18",
+      }),
     ).toBe(60);
   });
 
@@ -48,11 +61,11 @@ describe("timeline helpers", () => {
       buildSegmentStyle("2026-07-18T18:00:00Z", "2026-07-18T19:00:00Z", {
         startHour: 12,
         endHour: 22,
-        serviceDate: "2026-07-18"
-      })
+        serviceDate: "2026-07-18",
+      }),
     ).toEqual({
       left: "70%",
-      width: "10%"
+      width: "10%",
     });
   });
 
@@ -78,20 +91,20 @@ describe("timeline helpers", () => {
               calledAt: null,
               tableCalls: [],
               categorySummary: [],
-              hasBookingMatch: false
-            }
-          }
+              hasBookingMatch: false,
+            },
+          },
         ],
         {
           startHour: 12,
           endHour: 22,
-          now: "2026-07-18T18:42:10Z"
-        }
-      )
+          now: "2026-07-18T18:42:10Z",
+        },
+      ),
     ).toMatchObject({
       startIso: "2026-07-18T18:00:00.000Z",
       endIso: "2026-07-18T21:00:00.000Z",
-      startHour: 19
+      startHour: 19,
     });
   });
 });

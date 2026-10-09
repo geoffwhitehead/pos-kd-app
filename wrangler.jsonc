@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "pos-kd-app",
+  "name": "pos-kitchen",
   "account_id": "70ac66aefe915b84ea0517e253f40d2e",
   "main": "worker/index.mjs",
   "compatibility_date": "2026-10-09",
@@ -13,7 +13,7 @@
     "not_found_handling": "single-page-application",
   },
   "vars": {
-    "POS_API_ORIGIN": "https://positive-server.manager-70a.workers.dev",
+    "POS_API_ORIGIN": "https://pos-server.manager-70a.workers.dev",
     "ORGANIZATION_ID": "2ff0c4e6-e724-4b95-878a-21ce820c4c5c",
   },
   "routes": [{ "pattern": "kitchen.nomi.restaurant", "custom_domain": true }],

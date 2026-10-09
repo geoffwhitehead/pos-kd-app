@@ -1,10 +1,13 @@
-import type { KitchenDisplayResponse, ServiceBoardRow } from "../types/kitchenDisplay";
+import type {
+  KitchenDisplayResponse,
+  ServiceBoardRow,
+} from "../types/kitchenDisplay";
 import {
   floorToHalfHourInServiceTimeZone,
   formatServiceClockTime,
   getServiceDateString,
   getServiceHour,
-  localTimeOnServiceDateToIso
+  localTimeOnServiceDateToIso,
 } from "./time";
 
 type TimelineBounds = {
@@ -31,7 +34,11 @@ export function buildTimelineSlotsForWindow(startIso: string, endIso: string) {
   const start = new Date(startIso);
   const end = new Date(endIso);
 
-  for (let value = start.getTime(); value <= end.getTime(); value += 30 * 60 * 1000) {
+  for (
+    let value = start.getTime();
+    value <= end.getTime();
+    value += 30 * 60 * 1000
+  ) {
     slots.push(formatServiceClockTime(new Date(value)));
   }
 
@@ -42,33 +49,45 @@ function buildRange(bounds: TimelineBounds) {
   if (bounds.startIso && bounds.endIso) {
     return {
       start: new Date(bounds.startIso),
-      end: new Date(bounds.endIso)
+      end: new Date(bounds.endIso),
     };
   }
 
   return {
-    start: new Date(localTimeOnServiceDateToIso(bounds.serviceDate, bounds.startHour)),
-    end: new Date(localTimeOnServiceDateToIso(bounds.serviceDate, bounds.endHour))
+    start: new Date(
+      localTimeOnServiceDateToIso(bounds.serviceDate, bounds.startHour),
+    ),
+    end: new Date(
+      localTimeOnServiceDateToIso(bounds.serviceDate, bounds.endHour),
+    ),
   };
 }
 
-function overlapsWindow(startIso: string, endIso: string, windowStartIso: string, windowEndIso: string) {
-  return new Date(endIso).getTime() > new Date(windowStartIso).getTime()
-    && new Date(startIso).getTime() < new Date(windowEndIso).getTime();
+function overlapsWindow(
+  startIso: string,
+  endIso: string,
+  windowStartIso: string,
+  windowEndIso: string,
+) {
+  return (
+    new Date(endIso).getTime() > new Date(windowStartIso).getTime() &&
+    new Date(startIso).getTime() < new Date(windowEndIso).getTime()
+  );
 }
 
 export function buildVisibleBoardTimeline(
   rows: ServiceBoardRow[],
-  timeline: KitchenDisplayResponse["timeline"]
+  timeline: KitchenDisplayResponse["timeline"],
 ) {
   const serviceDate = getServiceDateString(timeline.now);
   const dayEndIso = localTimeOnServiceDateToIso(serviceDate, timeline.endHour);
-  const nowMs = new Date(timeline.now).getTime();
   const earliestActiveStartIso = rows
     .flatMap((row) =>
-      row.liveOverlay && new Date(row.liveOverlay.endsAt).getTime() >= nowMs
+      row.liveOverlay &&
+      !row.liveOverlay.isRetained &&
+      getServiceDateString(row.liveOverlay.startsAt) === serviceDate
         ? [row.liveOverlay.startsAt]
-        : []
+        : [],
     )
     .sort()[0];
   const visibleStartCandidate =
@@ -82,34 +101,43 @@ export function buildVisibleBoardTimeline(
     startHour: getServiceHour(startIso),
     startIso,
     endIso: dayEndIso,
-    serviceDate
+    serviceDate,
   };
 }
 
 export function filterRowsForVisibleWindow(
   rows: ServiceBoardRow[],
-  visibleTimeline: ReturnType<typeof buildVisibleBoardTimeline>
+  visibleTimeline: ReturnType<typeof buildVisibleBoardTimeline>,
 ) {
   return rows
     .map((row) => {
       const bookings = row.bookings.filter((booking) =>
-        overlapsWindow(booking.startsAt, booking.endsAt, visibleTimeline.startIso, visibleTimeline.endIso)
-      );
-      const liveOverlay =
-        row.liveOverlay &&
         overlapsWindow(
-          row.liveOverlay.startsAt,
-          row.liveOverlay.endsAt,
+          booking.startsAt,
+          booking.endsAt,
           visibleTimeline.startIso,
-          visibleTimeline.endIso
+          visibleTimeline.endIso,
+        ),
+      );
+      const effectiveOverlay =
+        row.liveOverlay && !row.liveOverlay.isRetained
+          ? { ...row.liveOverlay, endsAt: visibleTimeline.now }
+          : row.liveOverlay;
+      const liveOverlay =
+        effectiveOverlay &&
+        overlapsWindow(
+          effectiveOverlay.startsAt,
+          effectiveOverlay.endsAt,
+          visibleTimeline.startIso,
+          visibleTimeline.endIso,
         )
-          ? row.liveOverlay
+          ? effectiveOverlay
           : null;
 
       return {
         ...row,
         bookings,
-        liveOverlay
+        liveOverlay,
       };
     })
     .filter((row) => row.bookings.length > 0 || row.liveOverlay != null);
@@ -121,19 +149,20 @@ export function toTimelinePercent(isoValue: string, bounds: TimelineBounds) {
   const ratio =
     (value.getTime() - start.getTime()) / (end.getTime() - start.getTime());
 
-  return Math.max(0, Math.min(100, Math.round(ratio * 100)));
+  return Math.max(0, Math.min(100, ratio * 100));
 }
 
 export function buildSegmentStyle(
   startIso: string,
   endIso: string,
-  bounds: TimelineBounds
+  bounds: TimelineBounds,
+  minimumWidth = 2,
 ) {
   const left = toTimelinePercent(startIso, bounds);
   const right = toTimelinePercent(endIso, bounds);
 
   return {
     left: `${left}%`,
-    width: `${Math.max(right - left, 2)}%`
+    width: `${Math.max(right - left, minimumWidth)}%`,
   };
 }
