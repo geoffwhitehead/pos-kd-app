@@ -31,6 +31,16 @@ Token pairs are stored atomically before the board is retried.
 
 ## Commands
 
+Use Yarn Classic 1.22.22, matching `packageManager` in `package.json` and the
+committed v1 lockfile. In Cloudflare Workers Builds, set the build variable
+`YARN_VERSION=1.22.22` under Settings > Build > Build variables. This is a build
+environment variable, not a Worker runtime variable or secret. Without the
+override, the build image can use Yarn 4 and fail with YN0028 while attempting
+to migrate the lockfile. Keep immutable/frozen installs enabled.
+
+For Git builds, use `yarn build:cloudflare` as the build command and
+`npx wrangler deploy` as the deploy command.
+
 ```sh
 yarn install --frozen-lockfile
 yarn test
