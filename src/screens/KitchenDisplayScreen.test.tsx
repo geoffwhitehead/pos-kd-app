@@ -10,10 +10,12 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
-    expect(screen.queryByRole("heading", { name: /kitchen operations display/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /kitchen operations display/i }),
+    ).not.toBeInTheDocument();
     const statsBar = screen.getByLabelText(/service stats/i);
 
     expect(within(statsBar).getByText(/total bookings/i)).toBeInTheDocument();
@@ -24,26 +26,32 @@ describe("KitchenDisplayScreen", () => {
     expect(within(statsBar).getByText(/due in next 30/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/due in 60 min/i)).toBeInTheDocument();
     expect(within(statsBar).getByText(/takeaway live/i)).toBeInTheDocument();
-    expect(within(statsBar).getByText(/card tips/i)).toBeInTheDocument();
+    expect(within(statsBar).queryByText(/card tips/i)).not.toBeInTheDocument();
     expect(within(statsBar).getByText(/time/i)).toBeInTheDocument();
     expect(within(statsBar).getByText("8")).toBeInTheDocument();
     expect(within(statsBar).getByText("2")).toBeInTheDocument();
-    expect(within(statsBar).getByText("£184.20")).toBeInTheDocument();
-    expect(within(statsBar).getByText(/closed bills today/i)).toBeInTheDocument();
     expect(within(statsBar).getByText("19:42")).toBeInTheDocument();
     expect(within(statsBar).getAllByText("0 covers")).toHaveLength(3);
     expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();
     expect(within(statsBar).getByText("4 remaining")).toBeInTheDocument();
     expect(within(statsBar).getAllByText("0")).toHaveLength(2);
-    expect(screen.queryByRole("heading", { name: /service board/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /active orders/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /service board/i }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /active orders/i }),
+    ).not.toBeInTheDocument();
     expect(screen.getByLabelText(/timeline axis/i)).toBeInTheDocument();
     const inHouseLane = screen.getByLabelText("Eat-In");
     const billCalls = screen.getByLabelText(/bill calls/i);
     const reviews = screen.getByLabelText(/reviews/i);
 
-    expect(within(inHouseLane).getByText(/fish and chips/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/booking pressure strips/i)).toBeInTheDocument();
+    expect(
+      within(inHouseLane).getByText(/fish and chips/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/booking pressure strips/i),
+    ).toBeInTheDocument();
     expect(billCalls).toBeInTheDocument();
     expect(within(billCalls).getByText("Table 12")).toBeInTheDocument();
     expect(reviews).toBeInTheDocument();
@@ -57,16 +65,20 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /open order 12/i }));
 
     const details = screen.getByLabelText(/order details/i);
 
-    expect(within(details).getByRole("heading", { name: "12" })).toBeInTheDocument();
+    expect(
+      within(details).getByRole("heading", { name: "12" }),
+    ).toBeInTheDocument();
     expect(within(details).getByText("2 X FISH AND CHIPS")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /active orders/i })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: /active orders/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("dismisses a bill call from the footer locally", () => {
@@ -75,10 +87,14 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /dismiss call bill_abc123:call_12_1/i }));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /dismiss call bill_abc123:call_12_1/i,
+      }),
+    );
 
     const billCalls = screen.getByLabelText(/bill calls/i);
 
@@ -93,10 +109,14 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /dismiss call bill_abc123:call_12_1/i }));
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: /dismiss call bill_abc123:call_12_1/i,
+      }),
+    );
 
     rerender(
       <KitchenDisplayScreen
@@ -104,33 +124,36 @@ describe("KitchenDisplayScreen", () => {
           ...sampleKitchenDisplayResponse,
           activeOrders: {
             ...sampleKitchenDisplayResponse.activeOrders,
-            inHouse: sampleKitchenDisplayResponse.activeOrders.inHouse.map((order) =>
-              order.billId === "bill_abc123"
-                ? {
-                    ...order,
-                    billId: "bill_12_second",
-                    tableCalls: [
-                      {
-                        id: "call_12_1",
-                        displayRef: "12",
-                        calledAt: "2026-07-18T20:05:00Z"
-                      }
-                    ]
-                  }
-                : order
-            )
-          }
+            inHouse: sampleKitchenDisplayResponse.activeOrders.inHouse.map(
+              (order) =>
+                order.billId === "bill_abc123"
+                  ? {
+                      ...order,
+                      billId: "bill_12_second",
+                      tableCalls: [
+                        {
+                          id: "call_12_1",
+                          displayRef: "12",
+                          calledAt: "2026-07-18T20:05:00Z",
+                        },
+                      ],
+                    }
+                  : order,
+            ),
+          },
         }}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
     const billCalls = screen.getByLabelText(/bill calls/i);
 
     expect(within(billCalls).getByText("Table 12")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /dismiss call bill_12_second:call_12_1/i })
+      screen.getByRole("button", {
+        name: /dismiss call bill_12_second:call_12_1/i,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -140,7 +163,7 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
     rerender(
@@ -149,29 +172,35 @@ describe("KitchenDisplayScreen", () => {
           ...sampleKitchenDisplayResponse,
           tables: sampleKitchenDisplayResponse.tables.map((row) => ({
             ...row,
-            liveOverlay: null
+            liveOverlay: null,
           })),
           activeOrders: {
             ...sampleKitchenDisplayResponse.activeOrders,
-            inHouse: []
-          }
+            inHouse: [],
+          },
         }}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
     const statsBar = screen.getByLabelText(/service stats/i);
 
-    expect(screen.getByRole("button", { name: /live order 12/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /live order 12/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /live order 12/i })).toHaveStyle({
-      background: "rgba(90, 93, 100, 0.42)"
+      background: "rgba(90, 93, 100, 0.42)",
     });
-    expect(screen.queryByTestId("live-segment-food_ordered-12")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("live-segment-food_ordered-12"),
+    ).not.toBeInTheDocument();
     expect(within(statsBar).getByText(/total bookings/i)).toBeInTheDocument();
     expect(within(statsBar).getByText("2")).toBeInTheDocument();
     expect(within(statsBar).getByText("1 remaining")).toBeInTheDocument();
-    expect(screen.getByLabelText("Eat-In")).toHaveTextContent(/no active orders/i);
+    expect(screen.getByLabelText("Eat-In")).toHaveTextContent(
+      /no active orders/i,
+    );
   });
 
   it("opens the full cheque when a booking with an active order is clicked", () => {
@@ -180,14 +209,18 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /booking walker on table 12/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /booking walker on table 12/i }),
+    );
 
     const details = screen.getByLabelText(/order details/i);
 
-    expect(within(details).getByRole("heading", { name: "12" })).toBeInTheDocument();
+    expect(
+      within(details).getByRole("heading", { name: "12" }),
+    ).toBeInTheDocument();
     expect(within(details).getByText("2 X FISH AND CHIPS")).toBeInTheDocument();
   });
 
@@ -200,17 +233,17 @@ describe("KitchenDisplayScreen", () => {
           warnings: [
             {
               code: "LIVE_ORDERS_UNAVAILABLE",
-              message: "Live till order data is unavailable."
-            }
-          ]
+              message: "Live till order data is unavailable.",
+            },
+          ],
         }}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
     expect(
-      screen.getByText(/live till order data is unavailable/i)
+      screen.getByText(/live till order data is unavailable/i),
     ).toBeInTheDocument();
   });
 
@@ -220,18 +253,22 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
     expect(screen.getByLabelText(/reviews/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /open review by cein mcgillicuddy/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /open review by cein mcgillicuddy/i }),
+    );
 
     const details = screen.getByLabelText(/review details/i);
 
-    expect(within(details).getByRole("heading", { name: /cein mcgillicuddy/i })).toBeInTheDocument();
     expect(
-      within(details).getByText(/this is the best thai restaurant/i)
+      within(details).getByRole("heading", { name: /cein mcgillicuddy/i }),
+    ).toBeInTheDocument();
+    expect(
+      within(details).getByText(/this is the best thai restaurant/i),
     ).toBeInTheDocument();
   });
 
@@ -241,10 +278,12 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /open review by cein mcgillicuddy/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /open review by cein mcgillicuddy/i }),
+    );
     fireEvent.click(screen.getByRole("button", { name: /live order 12/i }));
 
     expect(screen.queryByLabelText(/review details/i)).not.toBeInTheDocument();
@@ -258,16 +297,18 @@ describe("KitchenDisplayScreen", () => {
           ...sampleKitchenDisplayResponse,
           timeline: {
             ...sampleKitchenDisplayResponse.timeline,
-            now: "2026-07-18T23:30:00Z"
-          }
+            now: "2026-07-18T23:30:00Z",
+          },
         }}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
     expect(
-      screen.getByText(/outside service hours\. live updates resume at 10:00\./i)
+      screen.getByText(
+        /outside service hours\. live updates resume at 10:00\./i,
+      ),
     ).toBeInTheDocument();
     expect(screen.getByTestId("service-window-overlay")).toBeInTheDocument();
   });
@@ -278,9 +319,11 @@ describe("KitchenDisplayScreen", () => {
         data={sampleKitchenDisplayResponse}
         isLoading={false}
         error={null}
-      />
+      />,
     );
 
-    expect(screen.queryByTestId("service-window-overlay")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("service-window-overlay"),
+    ).not.toBeInTheDocument();
   });
 });

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { BillCallFooter, type FooterBillCall } from "../components/BillCallFooter";
+import {
+  BillCallFooter,
+  type FooterBillCall,
+} from "../components/BillCallFooter";
 import { OrderDetailDrawer } from "../components/OrderDetailDrawer";
 import { OrderLane } from "../components/OrderLane";
 import { ReviewDetailDrawer } from "../components/ReviewDetailDrawer";
@@ -7,7 +10,7 @@ import { ReviewsFooter } from "../components/ReviewsFooter";
 import { ServiceBoard } from "../components/ServiceBoard";
 import { SystemWarningBanner } from "../components/SystemWarningBanner";
 import { getServiceStats } from "../lib/boardStats";
-import { formatCurrency, formatShortTime } from "../lib/format";
+import { formatShortTime } from "../lib/format";
 import { sortActiveOrders, sortServiceBoardRows } from "../lib/sort";
 import { mockBoardReviews } from "../mocks/googleReviews";
 import { getServiceDateString, isWithinServiceHours } from "../lib/time";
@@ -16,7 +19,7 @@ import type {
   ActiveOrderCard,
   KitchenDisplayResponse,
   RetainedActiveOrder,
-  ServiceBoardRow
+  ServiceBoardRow,
 } from "../types/kitchenDisplay";
 import styles from "./KitchenDisplayScreen.module.css";
 
@@ -33,7 +36,7 @@ type Props = {
 
 function findSelectedOrder(
   data: KitchenDisplayResponse | null,
-  selectedDisplayRef: string | null
+  selectedDisplayRef: string | null,
 ): ActiveOrderCard | null {
   if (data == null || selectedDisplayRef == null) {
     return null;
@@ -43,7 +46,7 @@ function findSelectedOrder(
     [
       ...data.activeOrders.inHouse,
       ...data.activeOrders.takeaway,
-      ...data.activeOrders.unassigned
+      ...data.activeOrders.unassigned,
     ].find((order) => order.displayRef === selectedDisplayRef) ?? null
   );
 }
@@ -61,17 +64,20 @@ function getBillCalls(data: KitchenDisplayResponse | null): FooterBillCall[] {
     .flatMap((order) =>
       (order.tableCalls ?? []).map((call) => ({
         ...call,
-        dismissalKey: `${order.billId}:${call.id}`
-      }))
+        dismissalKey: `${order.billId}:${call.id}`,
+      })),
     )
     .filter(
       (call) =>
         call != null &&
         call.id != null &&
         call.calledAt != null &&
-        call.dismissalKey.length > 0
+        call.dismissalKey.length > 0,
     )
-    .sort((left, right) => new Date(left.calledAt).getTime() - new Date(right.calledAt).getTime());
+    .sort(
+      (left, right) =>
+        new Date(left.calledAt).getTime() - new Date(right.calledAt).getTime(),
+    );
 }
 
 function getRowForOrder(rows: ServiceBoardRow[], order: ActiveOrderCard) {
@@ -98,7 +104,9 @@ function inferOrderCovers(row: ServiceBoardRow | null, order: ActiveOrderCard) {
   return overlappingBooking?.covers ?? 0;
 }
 
-function buildRetainedOrders(data: KitchenDisplayResponse | null): RetainedActiveOrder[] {
+function buildRetainedOrders(
+  data: KitchenDisplayResponse | null,
+): RetainedActiveOrder[] {
   if (data == null) {
     return [];
   }
@@ -107,23 +115,22 @@ function buildRetainedOrders(data: KitchenDisplayResponse | null): RetainedActiv
 
   return data.activeOrders.inHouse.map((order) => {
     const row = getRowForOrder(data.tables, order);
-    const liveOverlay =
-      row?.liveOverlay ?? {
-        billId: order.billId,
-        displayRef: order.displayRef,
-        status: order.status,
-        isRetained: false,
-        startsAt: order.createdAt,
-        endsAt: order.updatedAt,
-        createdAt: order.createdAt,
-        updatedAt: order.updatedAt,
-        openedAt: order.createdAt,
-        foodOrderedAt: null,
-        calledAt: null,
-        tableCalls: order.tableCalls,
-        categorySummary: order.categorySummary,
-        hasBookingMatch: false
-      };
+    const liveOverlay = row?.liveOverlay ?? {
+      billId: order.billId,
+      displayRef: order.displayRef,
+      status: order.status,
+      isRetained: false,
+      startsAt: order.createdAt,
+      endsAt: order.updatedAt,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      openedAt: order.createdAt,
+      foodOrderedAt: null,
+      calledAt: null,
+      tableCalls: order.tableCalls,
+      categorySummary: order.categorySummary,
+      hasBookingMatch: false,
+    };
 
     return {
       billId: order.billId,
@@ -133,12 +140,15 @@ function buildRetainedOrders(data: KitchenDisplayResponse | null): RetainedActiv
       serviceDate,
       inferredCovers: inferOrderCovers(row, order),
       order,
-      liveOverlay
+      liveOverlay,
     };
   });
 }
 
-function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActiveOrder[]) {
+function mergeRetainedRows(
+  rows: ServiceBoardRow[],
+  retainedOrders: RetainedActiveOrder[],
+) {
   const rowsByDisplayRef = new Map(rows.map((row) => [row.displayRef, row]));
   const mergedRows = [...rows];
 
@@ -149,7 +159,7 @@ function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActi
       if (existingRow.liveOverlay == null) {
         existingRow.liveOverlay = {
           ...retainedOrder.liveOverlay,
-          isRetained: true
+          isRetained: true,
         };
       }
 
@@ -163,8 +173,8 @@ function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActi
       bookings: [],
       liveOverlay: {
         ...retainedOrder.liveOverlay,
-        isRetained: true
-      }
+        isRetained: true,
+      },
     });
   }
 
@@ -174,8 +184,8 @@ function mergeRetainedRows(rows: ServiceBoardRow[], retainedOrders: RetainedActi
 export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
   const [detailSelection, setDetailSelection] = useState<DetailSelection>(null);
   const [dismissedCallIds, setDismissedCallIds] = useState<string[]>([]);
-  const [retainedOrders, setRetainedOrders] = useState<RetainedActiveOrder[]>(() =>
-    buildRetainedOrders(data)
+  const [retainedOrders, setRetainedOrders] = useState<RetainedActiveOrder[]>(
+    () => buildRetainedOrders(data),
   );
   const reviews = mockBoardReviews;
   const selectedOrder =
@@ -188,23 +198,33 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
       : null;
   const currentTime = data?.timeline.now ?? new Date().toISOString();
   const serviceDate = getServiceDateString(currentTime);
-  const currentRetainedOrders = useMemo(() => buildRetainedOrders(data), [data]);
+  const currentRetainedOrders = useMemo(
+    () => buildRetainedOrders(data),
+    [data],
+  );
   const boardRows = useMemo(
-    () => sortServiceBoardRows(mergeRetainedRows(data?.tables ?? [], retainedOrders)),
-    [data, retainedOrders]
+    () =>
+      sortServiceBoardRows(
+        mergeRetainedRows(data?.tables ?? [], retainedOrders),
+      ),
+    [data, retainedOrders],
   );
   const isOutsideServiceWindow = !isWithinServiceHours(currentTime);
   const stats = getServiceStats(data, retainedOrders);
   const billCalls = useMemo(() => getBillCalls(data), [data]);
   const liveDismissalKeys = useMemo(
     () => new Set(billCalls.map((call) => call.dismissalKey)),
-    [billCalls]
+    [billCalls],
   );
 
   useEffect(() => {
     setRetainedOrders((currentOrders) => {
-      const currentServiceOrders = currentOrders.filter((order) => order.serviceDate === serviceDate);
-      const nextOrdersByBillId = new Map(currentServiceOrders.map((order) => [order.billId, order]));
+      const currentServiceOrders = currentOrders.filter(
+        (order) => order.serviceDate === serviceDate,
+      );
+      const nextOrdersByBillId = new Map(
+        currentServiceOrders.map((order) => [order.billId, order]),
+      );
 
       for (const retainedOrder of currentRetainedOrders) {
         nextOrdersByBillId.set(retainedOrder.billId, retainedOrder);
@@ -216,7 +236,9 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
 
   useEffect(() => {
     setDismissedCallIds((currentIds) => {
-      const nextIds = currentIds.filter((dismissalKey) => liveDismissalKeys.has(dismissalKey));
+      const nextIds = currentIds.filter((dismissalKey) =>
+        liveDismissalKeys.has(dismissalKey),
+      );
 
       return nextIds.length === currentIds.length ? currentIds : nextIds;
     });
@@ -224,23 +246,33 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
 
   function dismissBillCall(dismissalKey: string) {
     setDismissedCallIds((currentIds) =>
-      currentIds.includes(dismissalKey) ? currentIds : [...currentIds, dismissalKey]
+      currentIds.includes(dismissalKey)
+        ? currentIds
+        : [...currentIds, dismissalKey],
     );
   }
 
   return (
     <main className={styles.screen}>
-      <div className={isOutsideServiceWindow ? styles.screenContentMuted : undefined}>
+      <div
+        className={
+          isOutsideServiceWindow ? styles.screenContentMuted : undefined
+        }
+      >
         <section className={styles.statsBar} aria-label="Service stats">
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Total Bookings</span>
             <strong className={styles.statValue}>{stats.totalBookings}</strong>
-            <span className={styles.statMeta}>{stats.totalBookingsRemaining} remaining</span>
+            <span className={styles.statMeta}>
+              {stats.totalBookingsRemaining} remaining
+            </span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Total Covers</span>
             <strong className={styles.statValue}>{stats.totalCovers}</strong>
-            <span className={styles.statMeta}>{stats.totalCoversRemaining} remaining</span>
+            <span className={styles.statMeta}>
+              {stats.totalCoversRemaining} remaining
+            </span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Active Tables</span>
@@ -252,31 +284,38 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Ordering Soon</span>
-            <strong className={styles.statValue}>{stats.orderingSoonTables}</strong>
-            <span className={styles.statMeta}>{stats.orderingSoonCovers} covers</span>
+            <strong className={styles.statValue}>
+              {stats.orderingSoonTables}
+            </strong>
+            <span className={styles.statMeta}>
+              {stats.orderingSoonCovers} covers
+            </span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Due In Next 30</span>
-            <strong className={styles.statValue}>{stats.dueNext30.tables}</strong>
-            <span className={styles.statMeta}>{stats.dueNext30.covers} covers</span>
+            <strong className={styles.statValue}>
+              {stats.dueNext30.tables}
+            </strong>
+            <span className={styles.statMeta}>
+              {stats.dueNext30.covers} covers
+            </span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Due In 60 Min</span>
             <strong className={styles.statValue}>{stats.dueIn60.tables}</strong>
-            <span className={styles.statMeta}>{stats.dueIn60.covers} covers</span>
+            <span className={styles.statMeta}>
+              {stats.dueIn60.covers} covers
+            </span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Takeaway Live</span>
             <strong className={styles.statValue}>{stats.takeawayLive}</strong>
           </div>
-          <div className={`${styles.statCard} ${styles.tipsCard}`}>
-            <span className={styles.statLabel}>Card Tips</span>
-            <strong className={styles.statValue}>{formatCurrency(stats.cardTipsTotal)}</strong>
-            <span className={styles.statMeta}>Closed bills today</span>
-          </div>
           <div className={`${styles.statCard} ${styles.clockCard}`}>
             <span className={styles.statLabel}>Time</span>
-            <strong className={styles.statValue}>{formatShortTime(currentTime)}</strong>
+            <strong className={styles.statValue}>
+              {formatShortTime(currentTime)}
+            </strong>
           </div>
         </section>
 
@@ -290,16 +329,24 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
                 data?.timeline ?? {
                   startHour: 12,
                   endHour: 22,
-                  now: new Date().toISOString()
+                  now: new Date().toISOString(),
                 }
               }
-              onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
+              onSelect={(displayRef) =>
+                setDetailSelection({ type: "order", displayRef })
+              }
             />
           </section>
 
-          <section aria-label="Active orders panel" className={`${styles.panel} ${styles.rightStack}`}>
+          <section
+            aria-label="Active orders panel"
+            className={`${styles.panel} ${styles.rightStack}`}
+          >
             {selectedReview ? (
-              <ReviewDetailDrawer review={selectedReview} onClose={() => setDetailSelection(null)} />
+              <ReviewDetailDrawer
+                review={selectedReview}
+                onClose={() => setDetailSelection(null)}
+              />
             ) : selectedOrder ? (
               <OrderDetailDrawer
                 order={selectedOrder}
@@ -311,20 +358,28 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
                   title="Eat-In"
                   orders={sortActiveOrders(data?.activeOrders.inHouse ?? [])}
                   currentTime={currentTime}
-                  onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
+                  onSelect={(displayRef) =>
+                    setDetailSelection({ type: "order", displayRef })
+                  }
                 />
                 <OrderLane
                   title="Takeaway"
                   orders={sortActiveOrders(data?.activeOrders.takeaway ?? [])}
                   currentTime={currentTime}
-                  onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
+                  onSelect={(displayRef) =>
+                    setDetailSelection({ type: "order", displayRef })
+                  }
                 />
                 {(data?.activeOrders.unassigned.length ?? 0) > 0 ? (
                   <OrderLane
                     title="Needs Review"
-                    orders={sortActiveOrders(data?.activeOrders.unassigned ?? [])}
+                    orders={sortActiveOrders(
+                      data?.activeOrders.unassigned ?? [],
+                    )}
                     currentTime={currentTime}
-                    onSelect={(displayRef) => setDetailSelection({ type: "order", displayRef })}
+                    onSelect={(displayRef) =>
+                      setDetailSelection({ type: "order", displayRef })
+                    }
                   />
                 ) : null}
               </>
@@ -340,7 +395,7 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
             gap: "12px",
             alignItems: "stretch",
             minWidth: 0,
-            overflow: "hidden"
+            overflow: "hidden",
           }}
         >
           <BillCallFooter
@@ -349,16 +404,18 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
             onDismiss={dismissBillCall}
             style={{
               flex: "1 1 108px",
-              minWidth: "108px"
+              minWidth: "108px",
             }}
           />
           <ReviewsFooter
             reviews={reviews}
-            onSelect={(reviewId) => setDetailSelection({ type: "review", reviewId })}
+            onSelect={(reviewId) =>
+              setDetailSelection({ type: "review", reviewId })
+            }
             style={{
               flex: "0 1 460px",
               maxWidth: "460px",
-              minWidth: 0
+              minWidth: 0,
             }}
           />
         </section>
