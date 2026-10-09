@@ -6,7 +6,7 @@
   "packageManager": "yarn@1.22.22",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build --mode cloudflare",
     "build:cloudflare": "tsc -b && vite build --mode cloudflare",
     "dev:cloudflare": "yarn build:cloudflare && wrangler dev",
     "deploy:check": "yarn build:cloudflare && wrangler deploy --dry-run",
