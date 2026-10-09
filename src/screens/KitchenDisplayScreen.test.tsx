@@ -1,10 +1,40 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 import { KitchenDisplayScreen } from "./KitchenDisplayScreen";
 
 describe("KitchenDisplayScreen", () => {
-  afterEach(() => vi.unstubAllEnvs());
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.useRealTimers();
+  });
+  it("warns when successful updates stop and clears the warning on recovery", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(sampleKitchenDisplayResponse.timeline.now));
+    const props = {
+      data: sampleKitchenDisplayResponse,
+      isLoading: false,
+      error: null,
+    };
+    const { rerender } = render(
+      <KitchenDisplayScreen
+        {...props}
+        lastSuccessfulFetchAt={new Date().toISOString()}
+      />,
+    );
+    expect(screen.getByText("Updated 19:42")).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(30000);
+    });
+    expect(screen.getByRole("status")).toHaveTextContent("Updates delayed");
+    rerender(
+      <KitchenDisplayScreen
+        {...props}
+        lastSuccessfulFetchAt={new Date().toISOString()}
+      />,
+    );
+    expect(screen.queryByText(/updates delayed/i)).not.toBeInTheDocument();
+  });
   it("renders the stats strip and split board layout", () => {
     render(
       <KitchenDisplayScreen

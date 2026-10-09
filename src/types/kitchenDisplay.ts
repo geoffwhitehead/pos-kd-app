@@ -19,6 +19,7 @@ export type KitchenItem = {
   printMessage?: string;
   offerInstanceId?: string;
   offerName?: string;
+  offerShortName?: string;
 };
 
 export type PrintCategorySummary = {

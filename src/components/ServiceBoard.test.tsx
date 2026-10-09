@@ -12,7 +12,7 @@ describe("ServiceBoard", () => {
         rows={sampleKitchenDisplayResponse.tables}
         timeline={sampleKitchenDisplayResponse.timeline}
         onSelect={onSelect}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /live order 12/i }));
@@ -36,15 +36,15 @@ describe("ServiceBoard", () => {
                 label: "Past booking",
                 covers: 2,
                 startsAt: "2026-07-18T14:00:00Z",
-                endsAt: "2026-07-18T15:00:00Z"
-              }
+                endsAt: "2026-07-18T15:00:00Z",
+              },
             ],
-            liveOverlay: null
-          }
+            liveOverlay: null,
+          },
         ]}
         timeline={sampleKitchenDisplayResponse.timeline}
         onSelect={() => {}}
-      />
+      />,
     );
 
     expect(screen.getByText("19:00")).toBeInTheDocument();
@@ -58,15 +58,28 @@ describe("ServiceBoard", () => {
         rows={sampleKitchenDisplayResponse.tables}
         timeline={sampleKitchenDisplayResponse.timeline}
         onSelect={() => {}}
-      />
+      />,
     );
 
-    expect(screen.getByLabelText(/booking pressure strips/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/0-30m pressure strip/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/30-60m pressure strip/i)).toBeInTheDocument();
-    expect(screen.getByTestId("booking-pressure-0-30-19:30")).toHaveAttribute("data-density-tone", "green");
-    expect(screen.getByTestId("booking-pressure-30-60-19:30")).toHaveAttribute("data-density-tone", "grey");
-    expect(screen.getByTestId("booking-pressure-0-30-20:00")).toHaveAttribute("data-density-tone", "grey");
+    expect(
+      screen.getByLabelText(/booking pressure strips/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/starter pressure strip/i),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/main pressure strip/i)).toBeInTheDocument();
+    expect(screen.getByTestId("booking-pressure-0-30-19:30")).toHaveAttribute(
+      "data-density-tone",
+      "green",
+    );
+    expect(screen.getByTestId("booking-pressure-30-60-19:30")).toHaveAttribute(
+      "data-density-tone",
+      "grey",
+    );
+    expect(screen.getByTestId("booking-pressure-0-30-20:00")).toHaveAttribute(
+      "data-density-tone",
+      "grey",
+    );
   });
 
   it("renders a board-wide current time line", () => {
@@ -75,12 +88,12 @@ describe("ServiceBoard", () => {
         rows={sampleKitchenDisplayResponse.tables}
         timeline={sampleKitchenDisplayResponse.timeline}
         onSelect={() => {}}
-      />
+      />,
     );
 
     expect(screen.getByTestId("service-board-now-line")).toBeInTheDocument();
     expect(screen.getByTestId("service-board-now-line")).toHaveStyle({
-      transform: "translateX(-50%)"
+      transform: "translateX(-50%)",
     });
   });
 });

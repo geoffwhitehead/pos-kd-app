@@ -13,7 +13,7 @@ describe("OrderLane", () => {
         orders={sampleKitchenDisplayResponse.activeOrders.inHouse}
         currentTime="2026-07-18T19:42:10Z"
         onSelect={onSelect}
-      />
+      />,
     );
 
     fireEvent.click(screen.getByRole("button", { name: /open order 12/i }));
@@ -27,7 +27,7 @@ describe("OrderLane", () => {
     expect(screen.getByText(/no peas/i)).toBeInTheDocument();
     expect(screen.getByText(/fired/i)).toBeInTheDocument();
     expect(screen.getByText("19:10")).toBeInTheDocument();
-    expect(screen.getByText(/called/i)).toBeInTheDocument();
+    expect(screen.getByText(/^called$/i)).toBeInTheDocument();
     expect(screen.getByText("19:38")).toBeInTheDocument();
     expect(screen.queryByText(/^food ordered$/i)).not.toBeInTheDocument();
   });
@@ -41,7 +41,7 @@ describe("OrderLane", () => {
           {
             ...sampleKitchenDisplayResponse.activeOrders.inHouse[0]!,
             createdAt: "2026-07-18T19:10:00Z",
-            updatedAt: "2026-07-18T19:32:00Z"
+            updatedAt: "2026-07-18T19:32:00Z",
           },
           {
             ...sampleKitchenDisplayResponse.activeOrders.inHouse[0]!,
@@ -49,24 +49,26 @@ describe("OrderLane", () => {
             billId: "bill_old_7",
             billRef: "7",
             createdAt: "2026-07-18T17:00:00Z",
-            updatedAt: "2026-07-18T18:00:00Z"
-          }
+            updatedAt: "2026-07-18T18:00:00Z",
+          },
         ]}
         onSelect={() => {}}
-      />
+      />,
     );
 
     expect(screen.getByText(/current cheques/i)).toBeInTheDocument();
     expect(screen.getByText(/older than 1 hour/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /open order 12/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /open order 7/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /open order 7/i })).toHaveAttribute(
-      "data-card-size",
-      "compact"
-    );
-    expect(screen.getByRole("button", { name: /open order 12/i })).toHaveAttribute(
-      "data-card-size",
-      "default"
-    );
+    expect(
+      screen.getByRole("button", { name: /open order 12/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /open order 7/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /open order 7/i }),
+    ).toHaveAttribute("data-card-size", "compact");
+    expect(
+      screen.getByRole("button", { name: /open order 12/i }),
+    ).toHaveAttribute("data-card-size", "default");
   });
 });

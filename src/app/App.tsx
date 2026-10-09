@@ -8,10 +8,11 @@ export function App() {
   const { session, signIn, signOut, status, updateSession } = useAuth();
   const [signInError, setSignInError] = useState<string | null>(null);
   const [isSigningIn, setIsSigningIn] = useState(false);
-  const { data, error, isLoading } = useKitchenDisplayPolling(session, {
-    onAuthFailure: signOut,
-    onSessionRefresh: updateSession
-  });
+  const { data, error, isLoading, lastSuccessfulFetchAt } =
+    useKitchenDisplayPolling(session, {
+      onAuthFailure: signOut,
+      onSessionRefresh: updateSession,
+    });
 
   if (status !== "authenticated" || session == null) {
     return (
@@ -25,7 +26,7 @@ export function App() {
             setSignInError(null);
           } catch (caught) {
             setSignInError(
-              caught instanceof Error ? caught.message : "Sign in failed"
+              caught instanceof Error ? caught.message : "Sign in failed",
             );
           } finally {
             setIsSigningIn(false);
@@ -36,6 +37,11 @@ export function App() {
   }
 
   return (
-    <KitchenDisplayScreen data={data} error={error} isLoading={isLoading} />
+    <KitchenDisplayScreen
+      data={data}
+      error={error}
+      isLoading={isLoading}
+      lastSuccessfulFetchAt={lastSuccessfulFetchAt}
+    />
   );
 }

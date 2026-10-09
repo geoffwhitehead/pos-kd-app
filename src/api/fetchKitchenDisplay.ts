@@ -53,6 +53,7 @@ type LegacyKitchenItem = {
   printMessage?: string;
   offerInstanceId?: string;
   offerName?: string;
+  offerShortName?: string;
 };
 
 type LegacyOrder = {
@@ -153,6 +154,7 @@ function toKitchenItems(items: LegacyKitchenItem[]): KitchenItem[] {
     printMessage: item.printMessage,
     offerInstanceId: item.offerInstanceId,
     offerName: item.offerName,
+    offerShortName: item.offerShortName,
   }));
 }
 

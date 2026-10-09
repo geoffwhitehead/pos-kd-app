@@ -1,16 +1,27 @@
-import { KitchenItemContext } from "./KitchenItemContext";
+import { KitchenItemContext, KitchenOfferLabel } from "./KitchenItemContext";
+import { ChequeActivity } from "./ChequeActivity";
 import { formatKitchenItemTime, formatShortTime } from "../lib/format";
-import { getFirstKitchenItemTime } from "../lib/kitchenOrders";
+import {
+  getFirstKitchenItemTime,
+  groupKitchenItemsByCategory,
+} from "../lib/kitchenOrders";
 import type { ActiveOrderCard as ActiveOrderCardType } from "../types/kitchenDisplay";
 
 type Props = {
   order: ActiveOrderCardType;
   onPress: () => void;
   size?: "default" | "compact";
+  currentTime?: string;
 };
 
-export function OrderCard({ order, onPress, size = "default" }: Props) {
+export function OrderCard({
+  order,
+  onPress,
+  size = "default",
+  currentTime = new Date().toISOString(),
+}: Props) {
   const firstKitchenItemTime = getFirstKitchenItemTime(order.items);
+  const groupedItems = groupKitchenItemsByCategory(order.items);
   const callTimes = order.tableCalls.map((call) =>
     formatShortTime(call.calledAt),
   );
@@ -30,13 +41,9 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
         padding: isCompact ? "8px 8px 10px" : "10px 10px 12px",
         borderRadius: isCompact ? "8px" : "10px",
         border: "1px solid var(--color-border)",
-        background:
-          "linear-gradient(180deg, rgba(248, 245, 239, 0.98), rgba(238, 232, 223, 0.96))",
+        background: "var(--color-receipt)",
         color: "#231f1b",
-        boxShadow: isCompact
-          ? "0 6px 14px rgba(0, 0, 0, 0.12)"
-          : "0 10px 24px rgba(0, 0, 0, 0.16)",
-        opacity: isCompact ? 0.78 : 1,
+        boxShadow: "none",
         display: "grid",
         gridTemplateRows: "auto auto 1fr",
         gap: isCompact ? "6px" : "8px",
@@ -129,38 +136,65 @@ export function OrderCard({ order, onPress, size = "default" }: Props) {
         >
           {formatKitchenItemTime(firstKitchenItemTime)}
         </span>
+        <ChequeActivity order={order} currentTime={currentTime} />
       </div>
-      <ul
+      <div
         style={{
-          margin: 0,
-          paddingLeft: isCompact ? "12px" : "14px",
           display: "grid",
-          gap: isCompact ? "3px" : "4px",
+          gap: isCompact ? "6px" : "8px",
           alignContent: "start",
         }}
       >
-        {order.items.map((item) => (
-          <li
-            key={item.billItemId}
-            style={{
-              lineHeight: 1.15,
-              fontSize: isCompact ? "10px" : "11px",
-              textTransform: "uppercase",
-              fontVariantCaps: "all-small-caps",
-            }}
-          >
-            <span style={{ fontWeight: 700 }}>{item.quantity} x</span>{" "}
-            {item.name}
-            {item.modifiers.length > 0 ? (
-              <span style={{ color: "rgba(35, 31, 27, 0.62)" }}>
-                {" "}
-                ({item.modifiers.join(", ")})
-              </span>
-            ) : null}
-            <KitchenItemContext item={item} />
-          </li>
+        {groupedItems.map((group) => (
+          <section key={group.category}>
+            <h3
+              style={{
+                margin: "0 0 4px",
+                fontSize: isCompact ? "9px" : "10px",
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "rgba(35, 31, 27, 0.58)",
+                borderBottom: "1px dashed rgba(35, 31, 27, 0.16)",
+                paddingBottom: "3px",
+              }}
+            >
+              {group.category.toUpperCase()}
+            </h3>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: isCompact ? "12px" : "14px",
+                display: "grid",
+                gap: isCompact ? "3px" : "4px",
+              }}
+            >
+              {group.items.map((item) => (
+                <li
+                  key={item.billItemId}
+                  style={{
+                    lineHeight: 1.15,
+                    fontSize: isCompact ? "10px" : "11px",
+                    textTransform: "uppercase",
+                    fontVariantCaps: "all-small-caps",
+                  }}
+                >
+                  <span style={{ fontWeight: 700 }}>{item.quantity} x</span>{" "}
+                  {item.name}
+                  <KitchenOfferLabel item={item} />
+                  {item.modifiers.length > 0 ? (
+                    <span style={{ color: "rgba(35, 31, 27, 0.62)" }}>
+                      {" "}
+                      ({item.modifiers.join(", ")})
+                    </span>
+                  ) : null}
+                  <KitchenItemContext item={item} />
+                </li>
+              ))}
+            </ul>
+          </section>
         ))}
-      </ul>
+      </div>
     </button>
   );
 }

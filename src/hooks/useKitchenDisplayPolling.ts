@@ -19,6 +19,9 @@ export function useKitchenDisplayPolling(
   const [data, setData] = useState<KitchenDisplayResponse | null>(null);
   const [isLoading, setIsLoading] = useState(hasSession);
   const [error, setError] = useState<string | null>(null);
+  const [lastSuccessfulFetchAt, setLastSuccessfulFetchAt] = useState<
+    string | null
+  >(null);
   const sessionRef = useRef<AuthSession | null>(session);
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export function useKitchenDisplayPolling(
   useEffect(() => {
     if (!hasSession) {
       setData(null);
+      setLastSuccessfulFetchAt(null);
       setIsLoading(false);
       setError(null);
       return;
@@ -67,6 +71,7 @@ export function useKitchenDisplayPolling(
         }
 
         setData(response.data);
+        setLastSuccessfulFetchAt(new Date().toISOString());
         setError(null);
       } catch (caught) {
         if (cancelled) {
@@ -100,5 +105,5 @@ export function useKitchenDisplayPolling(
     };
   }, [hasSession]);
 
-  return { data, isLoading, error };
+  return { data, isLoading, error, lastSuccessfulFetchAt };
 }

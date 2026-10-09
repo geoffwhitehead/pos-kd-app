@@ -9,13 +9,11 @@ describe("OrderDetailDrawer", () => {
       <OrderDetailDrawer
         order={sampleKitchenDisplayResponse.activeOrders.inHouse[0]}
         onClose={() => {}}
-      />
+      />,
     );
 
-    expect(
-      screen.getByRole("heading", { name: "12" })
-    ).toBeInTheDocument();
-    expect(screen.getByText(/called/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "12" })).toBeInTheDocument();
+    expect(screen.getByText(/^called$/i)).toBeInTheDocument();
     expect(screen.getByText("19:38")).toBeInTheDocument();
     expect(screen.queryByText(/first fire/i)).not.toBeInTheDocument();
     expect(screen.getByText("STARTERS")).toBeInTheDocument();

@@ -10,9 +10,7 @@ body,
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at top left, rgba(231, 168, 59, 0.18), transparent 24%),
-    linear-gradient(160deg, #101615 0%, #16201f 100%);
+  background: var(--color-bg);
   color: var(--color-text);
 }
 
@@ -34,4 +32,10 @@ a {
 
 input {
   font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
 }

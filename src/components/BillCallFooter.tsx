@@ -34,8 +34,7 @@ export function BillCallFooter({
           padding: "12px 14px",
           border: "1px solid var(--color-border)",
           borderRadius: "18px",
-          background:
-            "linear-gradient(180deg, rgba(36, 46, 46, 0.95), rgba(23, 30, 30, 0.95))",
+          background: "var(--color-panel)",
           boxShadow: "var(--shadow-panel)",
           display: "grid",
           gap: "10px",

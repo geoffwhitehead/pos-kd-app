@@ -1,5 +1,8 @@
 import { getBookingPressureBySlot } from "../lib/boardStats";
-import type { KitchenDisplayResponse, ServiceBoardRow } from "../types/kitchenDisplay";
+import type {
+  KitchenDisplayResponse,
+  ServiceBoardRow,
+} from "../types/kitchenDisplay";
 
 type Props = {
   rows: ServiceBoardRow[];
@@ -29,7 +32,7 @@ const DENSITY_COLORS = {
   grey: "rgba(90, 93, 100, 0.35)",
   green: "rgba(53, 120, 74, 0.9)",
   yellow: "rgba(198, 137, 47, 0.92)",
-  red: "rgba(178, 62, 54, 0.94)"
+  red: "rgba(178, 62, 54, 0.94)",
 } as const;
 
 type PressureRowProps = {
@@ -41,20 +44,21 @@ type PressureRowProps = {
 function PressureRow({ label, suffix, values }: PressureRowProps) {
   return (
     <div
-      aria-label={`${label} pressure strip`}
+      aria-label={`${label} strip`}
       style={{
         display: "grid",
         gridTemplateColumns: "56px minmax(0, 1fr)",
         gap: "8px",
-        alignItems: "center"
+        alignItems: "center",
       }}
     >
       <span
+        title={`Estimated ${label.toLowerCase()} from arrivals ${suffix} minutes earlier. Numbers show covers; colours show arriving tables.`}
         style={{
           color: "var(--color-subtle)",
-          fontSize: "11px",
+          fontSize: "9px",
           textTransform: "uppercase",
-          letterSpacing: "0.06em"
+          letterSpacing: "0.06em",
         }}
       >
         {label}
@@ -63,7 +67,7 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${values.length}, minmax(0, 1fr))`,
-          gap: "4px"
+          gap: "4px",
         }}
       >
         {values.map((entry) => {
@@ -74,12 +78,15 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
               key={`${suffix}-${entry.slot}`}
               data-testid={`booking-pressure-${suffix}-${entry.slot}`}
               data-density-tone={tone}
-              title={`${label} ${entry.slot}: ${entry.bookings} bookings, ${entry.covers} covers`}
+              title={`${label} ${entry.slot}: ${entry.bookings} bookings, ${entry.covers} covers arriving ${suffix} minutes earlier (estimate)`}
               style={{
                 height: "16px",
                 borderRadius: "999px",
                 background: DENSITY_COLORS[tone],
-                boxShadow: tone === "grey" ? "inset 0 0 0 1px rgba(255,255,255,0.06)" : "none",
+                boxShadow:
+                  tone === "grey"
+                    ? "inset 0 0 0 1px rgba(255,255,255,0.06)"
+                    : "none",
                 color: "rgba(255,255,255,0.92)",
                 fontSize: "9px",
                 fontWeight: 700,
@@ -87,7 +94,7 @@ function PressureRow({ label, suffix, values }: PressureRowProps) {
                 textAlign: "center",
                 letterSpacing: "0.02em",
                 overflow: "hidden",
-                whiteSpace: "nowrap"
+                whiteSpace: "nowrap",
               }}
             >
               {entry.covers > 0 ? entry.covers : ""}
@@ -108,25 +115,25 @@ export function BookingDensityStrip({ rows, timeline }: Props) {
       style={{
         display: "grid",
         gap: "6px",
-        marginBottom: "8px"
+        marginBottom: "8px",
       }}
     >
       <PressureRow
-        label="0-30m"
+        label="Starter pressure"
         suffix="0-30"
         values={pressure.map((entry) => ({
           slot: entry.slot,
           bookings: entry.starters,
-          covers: entry.starterCovers
+          covers: entry.starterCovers,
         }))}
       />
       <PressureRow
-        label="30-60m"
+        label="Main pressure"
         suffix="30-60"
         values={pressure.map((entry) => ({
           slot: entry.slot,
           bookings: entry.mains,
-          covers: entry.mainCovers
+          covers: entry.mainCovers,
         }))}
       />
     </div>

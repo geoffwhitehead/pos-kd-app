@@ -32,6 +32,7 @@ type Props = {
   data: KitchenDisplayResponse | null;
   isLoading: boolean;
   error: string | null;
+  lastSuccessfulFetchAt?: string | null;
 };
 
 function findSelectedOrder(
@@ -181,7 +182,17 @@ function mergeRetainedRows(
   return mergedRows;
 }
 
-export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
+export function KitchenDisplayScreen({
+  data,
+  isLoading,
+  error,
+  lastSuccessfulFetchAt = null,
+}: Props) {
+  const [wallTime, setWallTime] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setWallTime(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
   const [detailSelection, setDetailSelection] = useState<DetailSelection>(null);
   const [dismissedCallIds, setDismissedCallIds] = useState<string[]>([]);
   const [retainedOrders, setRetainedOrders] = useState<RetainedActiveOrder[]>(
@@ -200,7 +211,13 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
     detailSelection?.type === "review"
       ? findSelectedReview(reviews, detailSelection.reviewId)
       : null;
-  const currentTime = data?.timeline.now ?? new Date().toISOString();
+  // Advance the snapshot clock even if the network stops delivering updates.
+  const elapsedSinceFetch = lastSuccessfulFetchAt
+    ? Math.max(0, wallTime - Date.parse(lastSuccessfulFetchAt))
+    : 0;
+  const currentTime = data
+    ? new Date(Date.parse(data.timeline.now) + elapsedSinceFetch).toISOString()
+    : new Date(wallTime).toISOString();
   const serviceDate = getServiceDateString(currentTime);
   const currentRetainedOrders = useMemo(
     () => buildRetainedOrders(data),
@@ -214,6 +231,10 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
     [data, retainedOrders],
   );
   const isOutsideServiceWindow = !isWithinServiceHours(currentTime);
+  const isStale =
+    !isOutsideServiceWindow &&
+    lastSuccessfulFetchAt != null &&
+    elapsedSinceFetch >= 30000;
   const stats = getServiceStats(data, retainedOrders);
   const billCalls = useMemo(() => getBillCalls(data), [data]);
   const liveDismissalKeys = useMemo(
@@ -320,6 +341,16 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
             <strong className={styles.statValue}>
               {formatShortTime(currentTime)}
             </strong>
+            <span
+              className={isStale ? styles.freshnessStale : styles.statMeta}
+              role={isStale ? "status" : undefined}
+            >
+              {isOutsideServiceWindow
+                ? "Updates paused"
+                : lastSuccessfulFetchAt
+                  ? `${isStale ? "Updates delayed · " : "Updated "}${formatShortTime(lastSuccessfulFetchAt)}`
+                  : "Connecting…"}
+            </span>
           </div>
         </section>
 
@@ -330,11 +361,13 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
             <ServiceBoard
               rows={boardRows}
               timeline={
-                data?.timeline ?? {
-                  startHour: 12,
-                  endHour: 22,
-                  now: new Date().toISOString(),
-                }
+                data
+                  ? { ...data.timeline, now: currentTime }
+                  : {
+                      startHour: 12,
+                      endHour: 22,
+                      now: new Date().toISOString(),
+                    }
               }
               onSelect={(displayRef) =>
                 setDetailSelection({ type: "order", displayRef })
@@ -354,6 +387,7 @@ export function KitchenDisplayScreen({ data, isLoading, error }: Props) {
             ) : selectedOrder ? (
               <OrderDetailDrawer
                 order={selectedOrder}
+                currentTime={currentTime}
                 onClose={() => setDetailSelection(null)}
               />
             ) : (

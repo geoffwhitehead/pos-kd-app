@@ -22,8 +22,8 @@
   min-width: 160px;
   padding: 12px 14px;
   border: 1px solid var(--color-border);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(36, 46, 46, 0.95), rgba(23, 30, 30, 0.95));
+  border-radius: 6px;
+  background: var(--color-panel);
   box-shadow: var(--shadow-panel);
   display: grid;
   gap: 4px;
@@ -54,6 +54,15 @@
   color: var(--color-subtle);
 }
 
+.freshnessStale {
+  color: #10151c;
+  background: #f5bd59;
+  border-radius: 3px;
+  padding: 3px 5px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .columns {
   display: grid;
   grid-template-columns: minmax(0, 3fr) minmax(380px, 2.3fr);
@@ -64,8 +73,8 @@
 .panel {
   padding: 14px;
   border: 1px solid var(--color-border);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(36, 46, 46, 0.95), rgba(23, 30, 30, 0.95));
+  border-radius: 8px;
+  background: var(--color-panel);
   box-shadow: var(--shadow-panel);
   overflow: hidden;
 }

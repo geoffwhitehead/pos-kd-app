@@ -54,6 +54,7 @@ describe("fetchKitchenDisplay", () => {
                     printMessage: "Sauce on side",
                     offerInstanceId: "offer-instance-1",
                     offerName: "Lunch special",
+                    offerShortName: "LUN",
                     quantity: 2,
                     groupLabel: "Starters",
                     printerGroup: {
@@ -91,6 +92,7 @@ describe("fetchKitchenDisplay", () => {
       printMessage: "Sauce on side",
       offerInstanceId: "offer-instance-1",
       offerName: "Lunch special",
+      offerShortName: "LUN",
     });
     expect(response.nextSession).toEqual({
       accessToken: "access_456",

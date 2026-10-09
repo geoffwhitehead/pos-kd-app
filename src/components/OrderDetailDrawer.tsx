@@ -1,4 +1,5 @@
-import { KitchenItemContext } from "./KitchenItemContext";
+import { KitchenItemContext, KitchenOfferLabel } from "./KitchenItemContext";
+import { ChequeActivity } from "./ChequeActivity";
 import { formatShortTime } from "../lib/format";
 import { groupKitchenItemsByCategory } from "../lib/kitchenOrders";
 import type { ActiveOrderCard } from "../types/kitchenDisplay";
@@ -6,9 +7,14 @@ import type { ActiveOrderCard } from "../types/kitchenDisplay";
 type Props = {
   order: ActiveOrderCard | null;
   onClose: () => void;
+  currentTime?: string;
 };
 
-export function OrderDetailDrawer({ order, onClose }: Props) {
+export function OrderDetailDrawer({
+  order,
+  onClose,
+  currentTime = new Date().toISOString(),
+}: Props) {
   if (order == null) {
     return null;
   }
@@ -27,8 +33,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
         padding: "18px",
         borderRadius: "12px",
         border: "1px solid var(--color-border)",
-        background:
-          "linear-gradient(180deg, rgba(248, 245, 239, 0.98), rgba(238, 232, 223, 0.96))",
+        background: "var(--color-receipt)",
         color: "#231f1b",
         display: "grid",
         gap: "14px",
@@ -96,6 +101,7 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
           Close
         </button>
       </div>
+      <ChequeActivity order={order} currentTime={currentTime} />
       <div style={{ display: "grid", gap: "12px" }}>
         {groupedItems.map((group) => (
           <section
@@ -138,7 +144,10 @@ export function OrderDetailDrawer({ order, onClose }: Props) {
                     textTransform: "uppercase",
                   }}
                 >
-                  <span>{`${item.quantity} x ${item.name}`.toUpperCase()}</span>
+                  <span>
+                    {`${item.quantity} x ${item.name}`.toUpperCase()}
+                    <KitchenOfferLabel item={item} />
+                  </span>
                   {item.modifiers.length > 0 ? (
                     <span
                       style={{
