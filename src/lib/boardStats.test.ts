@@ -3,6 +3,35 @@ import { getBookingPressureBySlot, getServiceStats } from "./boardStats";
 import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 
 describe("boardStats", () => {
+  it("limits remaining arrivals to the planner cutoff and uses the live clock after service", () => {
+    const data = structuredClone(sampleKitchenDisplayResponse);
+    data.timeline.now = "2026-07-18T20:30:00Z"; // 21:30 London.
+    data.tables = [
+      {
+        ...data.tables[0],
+        liveOverlay: null,
+        bookings: [
+          "2026-07-18T20:45:00Z", // Before the 22:00 cutoff.
+          "2026-07-18T21:00:00Z", // At the cutoff.
+          "2026-07-18T21:15:00Z",
+          "2026-07-19T12:00:00Z",
+        ].map((startsAt, index) => ({
+          id: String(index),
+          label: "Booking",
+          covers: 2,
+          startsAt,
+          endsAt: new Date(Date.parse(startsAt) + 90 * 60000).toISOString(),
+        })),
+      },
+    ];
+    const stats = getServiceStats(data);
+    expect(stats.totalBookingsRemaining).toBe(1);
+    expect(stats.totalCoversRemaining).toBe(2);
+    expect(stats.dueIn60).toEqual({ tables: 0, covers: 0 });
+    const afterService = getServiceStats(data, [], "2026-07-18T21:15:00Z");
+    expect(afterService.totalBookingsRemaining).toBe(0);
+    expect(afterService.totalCoversRemaining).toBe(0);
+  });
   it("uses exclusive arrival windows with no overlap at 30 minutes", () => {
     const data = structuredClone(sampleKitchenDisplayResponse);
     const now = Date.parse(data.timeline.now);

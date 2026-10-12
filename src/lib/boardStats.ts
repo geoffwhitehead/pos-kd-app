@@ -4,7 +4,7 @@ import type {
   RetainedActiveOrder,
   ServiceBoardRow,
 } from "../types/kitchenDisplay";
-import { getServiceDateString } from "./time";
+import { getServiceDateString, localTimeOnServiceDateToIso } from "./time";
 import { buildTimelineSlotsForWindow } from "./timeline";
 
 export type PressureBand = "0-30" | "30-60" | "60-90";
@@ -63,8 +63,13 @@ function getUpcomingBookingTotals(rows: ServiceBoardRow[], nowIso: string) {
   );
 }
 
-function getRemainingBookingTotals(rows: ServiceBoardRow[], nowIso: string) {
+function getRemainingBookingTotals(
+  rows: ServiceBoardRow[],
+  nowIso: string,
+  endIso: string,
+) {
   const now = new Date(nowIso).getTime();
+  const end = Date.parse(endIso);
 
   return rows.reduce(
     (totals, row) => {
@@ -72,7 +77,7 @@ function getRemainingBookingTotals(rows: ServiceBoardRow[], nowIso: string) {
         (bookingTotals, booking) => {
           const startsAt = new Date(booking.startsAt).getTime();
 
-          if (startsAt < now) {
+          if (!Number.isFinite(startsAt) || startsAt < now || startsAt >= end) {
             return bookingTotals;
           }
 
@@ -126,10 +131,16 @@ function getRetainedTotals(
 export function getServiceStats(
   data: KitchenDisplayResponse | null,
   retainedOrders: RetainedActiveOrder[] = [],
+  currentTime?: string,
 ) {
   const rows = data?.tables ?? [];
-  const nowIso = data?.timeline.now ?? new Date().toISOString();
-  const remainingToday = getRemainingBookingTotals(rows, nowIso);
+  const nowIso = currentTime ?? data?.timeline.now ?? new Date().toISOString();
+  const endIso = localTimeOnServiceDateToIso(
+    getServiceDateString(nowIso),
+    data?.timeline.endHour ?? 22,
+  );
+  const endMs = Date.parse(endIso);
+  const remainingToday = getRemainingBookingTotals(rows, nowIso, endIso);
   const upcomingTotals = getUpcomingBookingTotals(rows, nowIso);
   const retainedTotals = getRetainedTotals(retainedOrders, nowIso);
   const activeTables = data?.activeOrders.inHouse.length ?? 0;
@@ -163,7 +174,11 @@ export function getServiceStats(
           const startsAt = new Date(booking.startsAt).getTime();
           const inThirtyMinutes = now + 30 * 60_000;
 
-          if (startsAt < now || startsAt >= inThirtyMinutes) {
+          if (
+            startsAt < now ||
+            startsAt >= inThirtyMinutes ||
+            startsAt >= endMs
+          ) {
             return bookingTotals;
           }
 
@@ -190,7 +205,11 @@ export function getServiceStats(
           const inSixtyMinutes = now + 60 * 60_000;
           const inThirtyMinutes = now + 30 * 60_000;
 
-          if (startsAt < inThirtyMinutes || startsAt >= inSixtyMinutes) {
+          if (
+            startsAt < inThirtyMinutes ||
+            startsAt >= inSixtyMinutes ||
+            startsAt >= endMs
+          ) {
             return bookingTotals;
           }
 

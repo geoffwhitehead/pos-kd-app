@@ -235,7 +235,7 @@ export function KitchenDisplayScreen({
     !isOutsideServiceWindow &&
     lastSuccessfulFetchAt != null &&
     elapsedSinceFetch >= 30000;
-  const stats = getServiceStats(data, retainedOrders);
+  const stats = getServiceStats(data, retainedOrders, currentTime);
   const billCalls = useMemo(() => getBillCalls(data), [data]);
   const liveDismissalKeys = useMemo(
     () => new Set(billCalls.map((call) => call.dismissalKey)),
@@ -290,14 +290,18 @@ export function KitchenDisplayScreen({
             <strong className={styles.statValue}>
               {stats.totalBookingsRemaining}
             </strong>
-            <span className={styles.statMeta}>Expected today</span>
+            <span className={styles.statMeta}>
+              Before {String(data?.timeline.endHour ?? 22).padStart(2, "0")}:00
+            </span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Covers Remaining</span>
             <strong className={styles.statValue}>
               {stats.totalCoversRemaining}
             </strong>
-            <span className={styles.statMeta}>Expected today</span>
+            <span className={styles.statMeta}>
+              Before {String(data?.timeline.endHour ?? 22).padStart(2, "0")}:00
+            </span>
           </div>
           <div className={styles.statCard}>
             <span className={styles.statLabel}>Active Tables</span>
