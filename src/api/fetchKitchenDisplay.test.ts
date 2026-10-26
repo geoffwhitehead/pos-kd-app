@@ -481,3 +481,40 @@ describe("fetchKitchenDisplay", () => {
     ]);
   });
 });
+
+it("uses the diary departure time instead of a party-size estimate", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      headers: new Headers(),
+      json: async () => ({
+        warnings: [],
+        freshness: {
+          bookingsLastSuccessAt: "2026-10-25T12:00:00Z",
+          redisBacked: false,
+        },
+        boardRows: [
+          {
+            tableRef: "11",
+            bookingTime: "2026-10-25T18:00:00Z",
+            departureTime: "2026-10-25T20:45:00Z",
+            covers: 2,
+            state: "booked",
+            hasOpenBill: false,
+          },
+        ],
+        activeOrders: { inHouse: [], takeaway: [] },
+      }),
+    }),
+  );
+  try {
+    const result = await fetchKitchenDisplay({
+      accessToken: "token",
+      refreshToken: "refresh",
+    });
+    expect(JSON.stringify(result.data)).toContain("2026-10-25T20:45:00Z");
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});

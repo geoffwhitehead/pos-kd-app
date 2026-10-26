@@ -1,5 +1,6 @@
 const routes = new Set([
   "GET /api/kd/board",
+  "GET /api/kd/board/diary",
   "POST /api/security/pair",
   "PUT /api/auth/refresh-tokens",
 ]);

@@ -18,7 +18,10 @@ import type {
   TableCall,
 } from "../types/kitchenDisplay";
 
-const DEFAULT_ENDPOINT = "/api/kd/board";
+const DEFAULT_ENDPOINT =
+  import.meta.env.VITE_BOOKINGS_SOURCE === "diary"
+    ? "/api/kd/board/diary"
+    : "/api/kd/board";
 
 export type AuthenticatedBoardResponse = {
   data: KitchenDisplayResponse;
@@ -29,6 +32,7 @@ type LegacyBoardRow = {
   tableRef: string;
   bookingName: string | null;
   bookingTime: string;
+  departureTime?: string;
   bookingCreatedAt?: string;
   covers: number | null;
   state: string;
@@ -195,7 +199,9 @@ function toBookingSegment(row: LegacyBoardRow): BookingSegment {
     covers: row.covers,
     startsAt: row.bookingTime,
     createdAt: row.bookingCreatedAt,
-    endsAt: addMinutes(row.bookingTime, getBookingDurationMinutes(row.covers)),
+    endsAt:
+      row.departureTime ??
+      addMinutes(row.bookingTime, getBookingDurationMinutes(row.covers)),
   };
 }
 

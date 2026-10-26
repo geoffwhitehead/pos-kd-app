@@ -73,17 +73,33 @@ describe("kitchen API proxy", () => {
     expect(upstream).not.toHaveBeenCalled();
   });
   it("does not follow API redirects with credentials", async () => {
-    const upstream = vi
-      .fn()
-      .mockResolvedValue(
-        new Response(null, {
-          status: 302,
-          headers: { Location: "https://other.example" },
-        }),
-      );
+    const upstream = vi.fn().mockResolvedValue(
+      new Response(null, {
+        status: 302,
+        headers: { Location: "https://other.example" },
+      }),
+    );
     expect(
       (await proxyApi(request("/api/kd/board"), env, upstream)).status,
     ).toBe(502);
     expect(upstream.mock.calls[0][1].redirect).toBe("manual");
   });
+});
+
+it("allows the additive diary board through the same authenticated proxy boundary", async () => {
+  const upstream = vi
+    .fn()
+    .mockResolvedValue(Response.json({ source: "diary", boardRows: [] }));
+  const response = await proxyApi(
+    request("/api/kd/board/diary", {
+      headers: { Authorization: "Bearer test" },
+    }),
+    env,
+    upstream,
+  );
+  expect(response.status).toBe(200);
+  expect(upstream.mock.calls[0][0].pathname).toBe("/api/kd/board/diary");
+  expect(upstream.mock.calls[0][1].headers.get("authorization")).toBe(
+    "Bearer test",
+  );
 });
