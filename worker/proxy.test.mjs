@@ -17,7 +17,7 @@ describe("kitchen API proxy", () => {
       .fn()
       .mockResolvedValue(Response.json({ boardRows: [] }));
     const response = await proxyApi(
-      request("/api/kd/board", {
+      request("/api/kd/board/diary", {
         headers: {
           Authorization: "Bearer test",
           Cookie: "staff=secret",
@@ -28,7 +28,7 @@ describe("kitchen API proxy", () => {
       upstream,
     );
     const [url, options] = upstream.mock.calls[0];
-    expect(url.href).toBe("https://api.example.com/api/kd/board");
+    expect(url.href).toBe("https://api.example.com/api/kd/board/diary");
     expect(options.headers.get("authorization")).toBe("Bearer test");
     expect(options.headers.has("cookie")).toBe(false);
     expect(options.headers.has("x-organization-id")).toBe(false);
@@ -62,7 +62,7 @@ describe("kitchen API proxy", () => {
     expect(
       (
         await proxyApi(
-          request("/api/kd/board", {
+          request("/api/kd/board/diary", {
             headers: { Origin: "https://other.example" },
           }),
           env,
@@ -80,13 +80,13 @@ describe("kitchen API proxy", () => {
       }),
     );
     expect(
-      (await proxyApi(request("/api/kd/board"), env, upstream)).status,
+      (await proxyApi(request("/api/kd/board/diary"), env, upstream)).status,
     ).toBe(502);
     expect(upstream.mock.calls[0][1].redirect).toBe("manual");
   });
 });
 
-it("allows the additive diary board through the same authenticated proxy boundary", async () => {
+it("allows the bookings-api board through the same authenticated proxy boundary", async () => {
   const upstream = vi
     .fn()
     .mockResolvedValue(Response.json({ source: "diary", boardRows: [] }));
@@ -102,4 +102,12 @@ it("allows the additive diary board through the same authenticated proxy boundar
   expect(upstream.mock.calls[0][1].headers.get("authorization")).toBe(
     "Bearer test",
   );
+});
+
+it("rejects the retired ResOS endpoint", async () => {
+  const upstream = vi.fn();
+  expect((await proxyApi(request("/api/kd/board"), env, upstream)).status).toBe(
+    404,
+  );
+  expect(upstream).not.toHaveBeenCalled();
 });

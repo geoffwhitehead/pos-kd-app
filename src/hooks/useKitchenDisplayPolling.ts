@@ -1,5 +1,6 @@
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { fetchKitchenDisplay } from "../api/fetchKitchenDisplay";
+import { AuthenticationError } from "../api/AuthenticationError";
 import { isWithinServiceHours } from "../lib/time";
 import type { AuthSession } from "../types/auth";
 import type { KitchenDisplayResponse } from "../types/kitchenDisplay";
@@ -83,7 +84,7 @@ export function useKitchenDisplayPolling(
 
         setError(message);
 
-        if (message.includes("401")) {
+        if (caught instanceof AuthenticationError) {
           notifyAuthFailure();
         }
       } finally {
@@ -95,6 +96,15 @@ export function useKitchenDisplayPolling(
     }
 
     void load();
+    const resume = () => {
+      void load();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") resume();
+    };
+    window.addEventListener("online", resume);
+    window.addEventListener("pageshow", resume);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     const timer = window.setInterval(() => {
       void load();
     }, POLL_INTERVAL_MS);
@@ -102,6 +112,9 @@ export function useKitchenDisplayPolling(
     return () => {
       cancelled = true;
       window.clearInterval(timer);
+      window.removeEventListener("online", resume);
+      window.removeEventListener("pageshow", resume);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [hasSession]);
 

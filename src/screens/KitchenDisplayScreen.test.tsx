@@ -8,6 +8,44 @@ describe("KitchenDisplayScreen", () => {
     vi.unstubAllEnvs();
     vi.useRealTimers();
   });
+  it("shows the London date and advances it across midnight", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T22:59:59Z"));
+    render(
+      <KitchenDisplayScreen
+        data={{
+          ...sampleKitchenDisplayResponse,
+          timeline: {
+            ...sampleKitchenDisplayResponse.timeline,
+            now: new Date().toISOString(),
+          },
+        }}
+        isLoading={false}
+        error={null}
+        lastSuccessfulFetchAt={new Date().toISOString()}
+      />,
+    );
+    expect(screen.getByText("Saturday, 18 July 2026")).toHaveAttribute(
+      "datetime",
+      "2026-07-18",
+    );
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(screen.getByText("Sunday, 19 July 2026")).toHaveAttribute(
+      "datetime",
+      "2026-07-19",
+    );
+  });
+
+  it("shows loading feedback instead of empty service statistics before data arrives", () => {
+    render(<KitchenDisplayScreen data={null} isLoading={true} error={null} />);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Loading service board",
+    );
+    expect(screen.queryByLabelText("Service stats")).not.toBeInTheDocument();
+  });
+
   it("warns when successful updates stop and clears the warning on recovery", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(sampleKitchenDisplayResponse.timeline.now));

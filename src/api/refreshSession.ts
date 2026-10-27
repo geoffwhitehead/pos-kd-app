@@ -1,6 +1,7 @@
 import { buildApiUrl, getApiBaseUrl } from "../config/api";
+import { AuthenticationError } from "./AuthenticationError";
 import {
-  loadStoredAuthSession,
+  getLatestAuthSession,
   saveStoredAuthSession,
 } from "../lib/authStorage";
 import type { AuthSession } from "../types/auth";
@@ -9,13 +10,8 @@ const ATTEMPT_KEY = "kd.auth.refreshAttempt";
 const pending = new Map<string, Promise<AuthSession>>();
 
 async function rotate(session: AuthSession): Promise<AuthSession> {
-  const stored = loadStoredAuthSession();
-  if (
-    stored &&
-    stored.refreshToken !== session.refreshToken &&
-    stored.refreshToken.split(".")[1] === session.refreshToken.split(".")[1]
-  )
-    return stored;
+  const stored = getLatestAuthSession(session);
+  if (stored !== session) return stored;
 
   let attempt: { token: string; id: string } | null = null;
   try {
@@ -40,6 +36,8 @@ async function rotate(session: AuthSession): Promise<AuthSession> {
       signal: AbortSignal.timeout(25_000),
     },
   );
+  if (response.status === 401)
+    throw new AuthenticationError("Session renewal failed: 401");
   if (!response.ok)
     throw new Error(`Session renewal failed: ${response.status}`);
   const payload = await response.json();

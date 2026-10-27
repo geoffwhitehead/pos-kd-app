@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchKitchenDisplay } from "./fetchKitchenDisplay";
 
 vi.mock("../config/api", () => ({
@@ -8,7 +8,12 @@ vi.mock("../config/api", () => ({
 }));
 
 describe("fetchKitchenDisplay", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-18T10:42:10.000Z"));
+  });
   afterEach(() => {
+    vi.useRealTimers();
     vi.unstubAllGlobals();
   });
 
@@ -22,6 +27,7 @@ describe("fetchKitchenDisplay", () => {
           "x-refresh-token": "refresh_789",
         }),
         json: async () => ({
+          source: "diary",
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T09:21:50.359Z",
@@ -30,8 +36,8 @@ describe("fetchKitchenDisplay", () => {
           boardRows: [
             {
               tableRef: "12",
-              bookingName: "Andia",
               bookingTime: "2026-07-18T16:00:00.000Z",
+              departureTime: "2026-07-18T18:15:00.000Z",
               covers: 2,
               state: "active_booked",
               hasOpenBill: true,
@@ -105,7 +111,7 @@ describe("fetchKitchenDisplay", () => {
       floor: "Service Floor",
     });
     expect(response.data.tables[0]?.bookings[0]).toMatchObject({
-      label: "Andia",
+      label: "12",
       covers: 2,
       startsAt: "2026-07-18T16:00:00.000Z",
     });
@@ -140,6 +146,7 @@ describe("fetchKitchenDisplay", () => {
         ok: true,
         headers: new Headers(),
         json: async () => ({
+          source: "diary",
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T09:21:50.359Z",
@@ -148,16 +155,16 @@ describe("fetchKitchenDisplay", () => {
           boardRows: [
             {
               tableRef: "1",
-              bookingName: "Finley",
               bookingTime: "2026-07-18T16:00:00.000Z",
+              departureTime: "2026-07-18T18:15:00.000Z",
               covers: 4,
               state: "booked",
               hasOpenBill: false,
             },
             {
               tableRef: "1",
-              bookingName: "Jill",
               bookingTime: "2026-07-18T19:30:00.000Z",
+              departureTime: "2026-07-18T21:00:00.000Z",
               covers: 2,
               state: "booked",
               hasOpenBill: false,
@@ -181,16 +188,17 @@ describe("fetchKitchenDisplay", () => {
     expect(response.data.tables[0]?.bookings).toHaveLength(2);
     expect(
       response.data.tables[0]?.bookings.map((booking) => booking.label),
-    ).toEqual(["Finley", "Jill"]);
+    ).toEqual(["1", "1"]);
   });
 
-  it("sizes booking cells by cover bands", async () => {
+  it("uses explicit departure times regardless of covers", async () => {
     vi.stubGlobal(
       "fetch",
       vi.fn().mockResolvedValue({
         ok: true,
         headers: new Headers(),
         json: async () => ({
+          source: "diary",
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T09:21:50.359Z",
@@ -199,24 +207,24 @@ describe("fetchKitchenDisplay", () => {
           boardRows: [
             {
               tableRef: "1",
-              bookingName: "Small top",
               bookingTime: "2026-07-18T16:00:00.000Z",
+              departureTime: "2026-07-18T18:15:00.000Z",
               covers: 2,
               state: "booked",
               hasOpenBill: false,
             },
             {
               tableRef: "2",
-              bookingName: "Mid table",
               bookingTime: "2026-07-18T16:00:00.000Z",
+              departureTime: "2026-07-18T18:15:00.000Z",
               covers: 4,
               state: "booked",
               hasOpenBill: false,
             },
             {
               tableRef: "3",
-              bookingName: "Large table",
               bookingTime: "2026-07-18T16:00:00.000Z",
+              departureTime: "2026-07-18T18:15:00.000Z",
               covers: 6,
               state: "booked",
               hasOpenBill: false,
@@ -238,15 +246,15 @@ describe("fetchKitchenDisplay", () => {
     expect(
       response.data.tables.find((table) => table.tableRef === "1")?.bookings[0]
         ?.endsAt,
-    ).toBe("2026-07-18T17:30:00.000Z");
+    ).toBe("2026-07-18T18:15:00.000Z");
     expect(
       response.data.tables.find((table) => table.tableRef === "2")?.bookings[0]
         ?.endsAt,
-    ).toBe("2026-07-18T18:00:00.000Z");
+    ).toBe("2026-07-18T18:15:00.000Z");
     expect(
       response.data.tables.find((table) => table.tableRef === "3")?.bookings[0]
         ?.endsAt,
-    ).toBe("2026-07-18T18:30:00.000Z");
+    ).toBe("2026-07-18T18:15:00.000Z");
   });
 
   it("keeps drinks-only seated tables on the board while hiding them from kitchen cheques", async () => {
@@ -256,6 +264,7 @@ describe("fetchKitchenDisplay", () => {
         ok: true,
         headers: new Headers(),
         json: async () => ({
+          source: "diary",
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T10:21:50.359Z",
@@ -264,16 +273,16 @@ describe("fetchKitchenDisplay", () => {
           boardRows: [
             {
               tableRef: "12",
-              bookingName: "Andia",
               bookingTime: "2026-07-18T16:00:00.000Z",
+              departureTime: "2026-07-18T18:15:00.000Z",
               covers: 2,
               state: "active_booked",
               hasOpenBill: true,
             },
             {
               tableRef: "7",
-              bookingName: "Cowell",
               bookingTime: "2026-07-18T17:00:00.000Z",
+              departureTime: "2026-07-18T19:15:00.000Z",
               covers: 2,
               state: "active_booked",
               hasOpenBill: true,
@@ -393,6 +402,7 @@ describe("fetchKitchenDisplay", () => {
         ok: true,
         headers: new Headers(),
         json: async () => ({
+          source: "diary",
           warnings: [],
           freshness: {
             bookingsLastSuccessAt: "2026-07-18T10:42:10.000Z",
@@ -401,8 +411,8 @@ describe("fetchKitchenDisplay", () => {
           boardRows: [
             {
               tableRef: "14",
-              bookingName: "Paul",
               bookingTime: "2026-07-18T18:00:00.000Z",
+              departureTime: "2026-07-18T20:15:00.000Z",
               covers: 4,
               state: "active_booked",
               hasOpenBill: true,
@@ -489,6 +499,7 @@ it("uses the diary departure time instead of a party-size estimate", async () =>
       ok: true,
       headers: new Headers(),
       json: async () => ({
+        source: "diary",
         warnings: [],
         freshness: {
           bookingsLastSuccessAt: "2026-10-25T12:00:00Z",
@@ -517,4 +528,103 @@ it("uses the diary departure time instead of a party-size estimate", async () =>
   } finally {
     vi.unstubAllGlobals();
   }
+});
+
+describe("bookings-api contract", () => {
+  const session = { accessToken: "access", refreshToken: "refresh" };
+  const board = {
+    source: "diary",
+    warnings: [],
+    freshness: { bookingsLastSuccessAt: "2026-10-27T12:00:00Z" },
+    boardRows: [],
+    activeOrders: { inHouse: [], takeaway: [] },
+  };
+  afterEach(() => vi.unstubAllGlobals());
+
+  it.each([undefined, "resos"])(
+    "rejects source %s without retrying a legacy feed",
+    async (source) => {
+      const fetchMock = vi
+        .fn()
+        .mockResolvedValue(Response.json({ ...board, source }));
+      vi.stubGlobal("fetch", fetchMock);
+      await expect(fetchKitchenDisplay(session)).rejects.toThrow(
+        "Expected bookings-api",
+      );
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.mock.calls[0][0]).toMatch(/\/api\/kd\/board\/diary$/);
+    },
+  );
+
+  it("does not estimate departure times for an incomplete booking", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          ...board,
+          boardRows: [
+            { tableRef: "12", bookingTime: "2026-10-27T18:00:00Z", covers: 2 },
+          ],
+        }),
+      ),
+    );
+    await expect(fetchKitchenDisplay(session)).rejects.toThrow(
+      "departure time",
+    );
+  });
+
+  it.each([true, false])(
+    "keeps walk-ins visible when bookings are unavailable: %s",
+    async (unavailable) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          Response.json({
+            ...board,
+            warnings: unavailable ? ["BOOKINGS_STALE"] : [],
+            freshness: {
+              bookingsLastSuccessAt: unavailable
+                ? null
+                : "2026-10-27T12:00:00Z",
+            },
+            activeOrders: {
+              inHouse: [
+                {
+                  billId: "walk-in",
+                  billRef: "12",
+                  displayRef: "12",
+                  serviceType: "dine_in",
+                  updatedAt: "2026-10-27T12:00:00Z",
+                  hasOpenBill: true,
+                  items: [
+                    {
+                      id: "beer",
+                      name: "Beer",
+                      quantity: 1,
+                      groupLabel: "Drinks",
+                      printerGroup: { id: "bar", name: "Bar" },
+                      modifiers: [],
+                    },
+                  ],
+                },
+              ],
+              takeaway: [],
+            },
+          }),
+        ),
+      );
+      const { data } = await fetchKitchenDisplay(session);
+      expect(data.bookingsStatus).toBe(unavailable ? "unavailable" : "ok");
+      expect(data.warnings.map((warning) => warning.code)).toEqual(
+        unavailable ? ["BOOKINGS_UNAVAILABLE"] : [],
+      );
+      expect(Number.isFinite(Date.parse(data.timeline.now))).toBe(true);
+      expect(data.tables[0]).toMatchObject({
+        tableRef: "12",
+        bookings: [],
+        liveOverlay: { billId: "walk-in", status: "active" },
+      });
+      expect(data.activeOrders.inHouse).toEqual([]);
+    },
+  );
 });

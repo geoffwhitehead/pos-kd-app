@@ -13,25 +13,26 @@
 
 .statsBar {
   margin-bottom: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
 }
 
 .statCard {
-  min-width: 160px;
+  min-width: 0;
   padding: 12px 14px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: var(--color-panel);
   box-shadow: var(--shadow-panel);
   display: grid;
-  gap: 4px;
+  grid-template-rows: 32px auto minmax(14px, auto);
+  align-content: start;
+  gap: 6px;
 }
 
 .clockCard {
-  margin-left: auto;
-  min-width: 180px;
+  background: var(--color-panel-muted);
 }
 
 .statLabel {
@@ -42,6 +43,7 @@
 }
 
 .statValue {
+  font-variant-numeric: tabular-nums;
   font-size: 28px;
   line-height: 1;
   color: var(--color-text);
@@ -127,5 +129,49 @@
 
   .columns {
     grid-template-columns: 1fr;
+  }
+}
+
+.dateHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.dateMeta {
+  color: var(--color-subtle);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.loadingState {
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-panel);
+  text-align: center;
+}
+
+.loadingState p {
+  color: var(--color-subtle);
+}
+
+@media (max-width: 480px) {
+  .screen {
+    padding: 10px;
+  }
+  .statsBar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .clockCard {
+    grid-column: 1 / -1;
+  }
+  .panel {
+    padding: 10px;
   }
 }

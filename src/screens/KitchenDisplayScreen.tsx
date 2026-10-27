@@ -10,7 +10,7 @@ import { ReviewsFooter } from "../components/ReviewsFooter";
 import { ServiceBoard } from "../components/ServiceBoard";
 import { SystemWarningBanner } from "../components/SystemWarningBanner";
 import { getServiceStats } from "../lib/boardStats";
-import { formatShortTime } from "../lib/format";
+import { formatServiceDate, formatShortTime } from "../lib/format";
 import { sortActiveOrders, sortServiceBoardRows } from "../lib/sort";
 import { mockBoardReviews } from "../mocks/googleReviews";
 import { getServiceDateString, isWithinServiceHours } from "../lib/time";
@@ -277,8 +277,31 @@ export function KitchenDisplayScreen({
     );
   }
 
+  const dateHeader = (
+    <header className={styles.dateHeader}>
+      <time dateTime={serviceDate}>{formatServiceDate(currentTime)}</time>
+      <span className={styles.dateMeta}>London time</span>
+    </header>
+  );
+
+  if (data == null) {
+    return (
+      <main className={styles.screen}>
+        {dateHeader}
+        <SystemWarningBanner warnings={[]} error={error} />
+        <section className={styles.loadingState} role="status">
+          <strong>
+            {isLoading ? "Loading service board…" : "Waiting for service data"}
+          </strong>
+          <p>The board will appear when a service update is received.</p>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className={styles.screen}>
+      {dateHeader}
       <div
         className={
           isOutsideServiceWindow ? styles.screenContentMuted : undefined
@@ -321,7 +344,7 @@ export function KitchenDisplayScreen({
             </span>
           </div>
           <div className={styles.statCard}>
-            <span className={styles.statLabel}>Due In Next 30</span>
+            <span className={styles.statLabel}>Due In Next 30 Min</span>
             <strong className={styles.statValue}>
               {stats.dueNext30.tables}
             </strong>

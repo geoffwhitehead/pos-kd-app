@@ -35,6 +35,24 @@ export function saveStoredAuthSession(session: AuthSession) {
   window.localStorage.removeItem(REFRESH_TOKEN_KEY);
 }
 
+export function getLatestAuthSession(session: AuthSession): AuthSession {
+  const stored = loadStoredAuthSession();
+  const sessionId = session.refreshToken.split(".")[1];
+  // Never substitute credentials from a different pairing.
+  if (
+    stored &&
+    sessionId &&
+    session.refreshToken.startsWith("pos2.") &&
+    stored.refreshToken.startsWith("pos2.") &&
+    stored.refreshToken.split(".")[1] === sessionId &&
+    (stored.accessToken !== session.accessToken ||
+      stored.refreshToken !== session.refreshToken)
+  ) {
+    return stored;
+  }
+  return session;
+}
+
 export function clearStoredAuthSession() {
   window.localStorage.removeItem(SESSION_KEY);
   window.localStorage.removeItem("kd.auth.refreshAttempt");

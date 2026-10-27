@@ -1,13 +1,20 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 import { useKitchenDisplayPolling } from "./useKitchenDisplayPolling";
 
 vi.mock("../config/api", () => ({
   getApiBaseUrl: () => "https://positive-server.herokuapp.com",
   buildApiUrl: (baseUrl: string, path: string) =>
-    `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`
+    `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`,
 }));
+
+const sampleApiBoard = {
+  source: "diary",
+  warnings: [],
+  freshness: { bookingsLastSuccessAt: "2026-07-18T09:30:00Z" },
+  boardRows: [],
+  activeOrders: { inHouse: [], takeaway: [] },
+};
 
 describe("useKitchenDisplayPolling", () => {
   afterEach(() => {
@@ -22,7 +29,7 @@ describe("useKitchenDisplayPolling", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers(),
-      json: async () => sampleKitchenDisplayResponse
+      json: async () => sampleApiBoard,
     });
 
     vi.stubGlobal("fetch", fetchMock);
@@ -30,8 +37,8 @@ describe("useKitchenDisplayPolling", () => {
     renderHook(() =>
       useKitchenDisplayPolling({
         accessToken: "access_123",
-        refreshToken: "refresh_456"
-      })
+        refreshToken: "refresh_456",
+      }),
     );
 
     await act(async () => {
@@ -40,13 +47,13 @@ describe("useKitchenDisplayPolling", () => {
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://positive-server.herokuapp.com/api/kd/board",
+      "https://positive-server.herokuapp.com/api/kd/board/diary",
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: "Bearer access_123",
-          "x-refresh-token": "refresh_456"
-        })
-      })
+          "x-refresh-token": "refresh_456",
+        }),
+      }),
     );
   });
 
@@ -59,8 +66,8 @@ describe("useKitchenDisplayPolling", () => {
       vi.fn().mockResolvedValue({
         ok: false,
         status: 401,
-        headers: new Headers()
-      })
+        headers: new Headers(),
+      }),
     );
 
     const onAuthFailure = vi.fn();
@@ -69,13 +76,13 @@ describe("useKitchenDisplayPolling", () => {
       useKitchenDisplayPolling(
         {
           accessToken: "access_123",
-          refreshToken: "refresh_456"
+          refreshToken: "refresh_456",
         },
         {
           onAuthFailure,
-          onSessionRefresh: () => {}
-        }
-      )
+          onSessionRefresh: () => {},
+        },
+      ),
     );
 
     await act(async () => {
@@ -94,9 +101,9 @@ describe("useKitchenDisplayPolling", () => {
       ok: true,
       headers: new Headers({
         authorization: "Bearer access_456",
-        "x-refresh-token": "refresh_789"
+        "x-refresh-token": "refresh_789",
       }),
-      json: async () => sampleKitchenDisplayResponse
+      json: async () => sampleApiBoard,
     });
 
     vi.stubGlobal("fetch", fetchMock);
@@ -107,16 +114,16 @@ describe("useKitchenDisplayPolling", () => {
       ({ session }) =>
         useKitchenDisplayPolling(session, {
           onAuthFailure: () => {},
-          onSessionRefresh
+          onSessionRefresh,
         }),
       {
         initialProps: {
           session: {
             accessToken: "access_123",
-            refreshToken: "refresh_456"
-          }
-        }
-      }
+            refreshToken: "refresh_456",
+          },
+        },
+      },
     );
 
     await act(async () => {
@@ -129,14 +136,14 @@ describe("useKitchenDisplayPolling", () => {
     expect(initialCallCount).toBeGreaterThan(0);
     expect(onSessionRefresh).toHaveBeenCalledWith({
       accessToken: "access_456",
-      refreshToken: "refresh_789"
+      refreshToken: "refresh_789",
     });
 
     rerender({
       session: {
         accessToken: "access_456",
-        refreshToken: "refresh_789"
-      }
+        refreshToken: "refresh_789",
+      },
     });
 
     await act(async () => {
@@ -164,7 +171,7 @@ describe("useKitchenDisplayPolling", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers(),
-      json: async () => sampleKitchenDisplayResponse
+      json: async () => sampleApiBoard,
     });
 
     vi.stubGlobal("fetch", fetchMock);
@@ -172,8 +179,8 @@ describe("useKitchenDisplayPolling", () => {
     const { result } = renderHook(() =>
       useKitchenDisplayPolling({
         accessToken: "access_123",
-        refreshToken: "refresh_456"
-      })
+        refreshToken: "refresh_456",
+      }),
     );
 
     await act(async () => {
@@ -193,7 +200,7 @@ describe("useKitchenDisplayPolling", () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers(),
-      json: async () => sampleKitchenDisplayResponse
+      json: async () => sampleApiBoard,
     });
 
     vi.stubGlobal("fetch", fetchMock);
@@ -201,8 +208,8 @@ describe("useKitchenDisplayPolling", () => {
     renderHook(() =>
       useKitchenDisplayPolling({
         accessToken: "access_123",
-        refreshToken: "refresh_456"
-      })
+        refreshToken: "refresh_456",
+      }),
     );
 
     await act(async () => {

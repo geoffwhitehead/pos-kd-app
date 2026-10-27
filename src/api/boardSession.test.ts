@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchKitchenDisplay } from "./fetchKitchenDisplay";
-import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 import { loadStoredAuthSession } from "../lib/authStorage";
 
 vi.mock("../config/api", () => ({
@@ -17,14 +16,22 @@ describe("board session recovery", () => {
       .fn()
       .mockResolvedValueOnce(new Response(null, { status: 401 }))
       .mockResolvedValueOnce(Response.json(next))
-      .mockResolvedValueOnce(Response.json(sampleKitchenDisplayResponse));
+      .mockResolvedValueOnce(
+        Response.json({
+          source: "diary",
+          warnings: [],
+          freshness: { bookingsLastSuccessAt: "2026-10-27T12:00:00Z" },
+          boardRows: [],
+          activeOrders: { inHouse: [], takeaway: [] },
+        }),
+      );
     vi.stubGlobal("fetch", fetchMock);
     const result = await fetchKitchenDisplay(session);
     expect(result.nextSession).toEqual(next);
     expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-      "/api/kd/board",
+      "/api/kd/board/diary",
       "/api/auth/refresh-tokens",
-      "/api/kd/board",
+      "/api/kd/board/diary",
     ]);
     expect(fetchMock.mock.calls[2][1].headers.Authorization).toBe(
       "Bearer fresh",

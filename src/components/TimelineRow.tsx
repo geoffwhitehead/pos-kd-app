@@ -328,7 +328,7 @@ export function TimelineRow({
             data-walk-in={isWalkIn}
             title={
               isWalkIn
-                ? `Possible walk-in: no ResOS reservation on this table. ${mainsCount > 0 ? `Estimated ${mainsCount} covers from mains ordered.` : "Covers unknown until mains are ordered."}`
+                ? `Possible walk-in: no reservation on this table. ${mainsCount > 0 ? `Estimated ${mainsCount} covers from mains ordered.` : "Covers unknown until mains are ordered."}`
                 : undefined
             }
             onClick={() => onSelect(row.displayRef)}

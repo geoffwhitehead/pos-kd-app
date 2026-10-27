@@ -50,12 +50,12 @@ export function OrderLane({ title, orders, currentTime, onSelect }: Props) {
 
   return (
     <section aria-label={title}>
-      <h3 style={{ marginBottom: "10px" }}>{title}</h3>
+      <h3 style={{ margin: "0 0 10px" }}>{title}</h3>
       {orders.length === 0 ? (
         <p>No active orders.</p>
       ) : (
         <div style={{ display: "grid", gap: "12px" }}>
-          {shouldSplitIntoRail ? (
+          {shouldSplitIntoRail && current.length > 0 ? (
             <section aria-label={`${title} current cheques`}>
               <h4
                 style={{

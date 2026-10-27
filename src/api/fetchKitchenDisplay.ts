@@ -1,5 +1,6 @@
 import { buildApiUrl, getApiBaseUrl } from "../config/api";
 import { refreshSession } from "./refreshSession";
+import { getLatestAuthSession } from "../lib/authStorage";
 import {
   getFirstBillCallTime,
   getFirstKitchenItemTime,
@@ -18,28 +19,23 @@ import type {
   TableCall,
 } from "../types/kitchenDisplay";
 
-const DEFAULT_ENDPOINT =
-  import.meta.env.VITE_BOOKINGS_SOURCE === "diary"
-    ? "/api/kd/board/diary"
-    : "/api/kd/board";
+const BOARD_ENDPOINT = "/api/kd/board/diary";
 
 export type AuthenticatedBoardResponse = {
   data: KitchenDisplayResponse;
   nextSession: AuthSession | null;
 };
 
-type LegacyBoardRow = {
+type ApiBoardRow = {
   tableRef: string;
-  bookingName: string | null;
   bookingTime: string;
-  departureTime?: string;
-  bookingCreatedAt?: string;
+  departureTime: string;
   covers: number | null;
   state: string;
   hasOpenBill: boolean;
 };
 
-type LegacyKitchenItem = {
+type ApiKitchenItem = {
   id: string;
   name: string;
   quantity: number;
@@ -61,7 +57,7 @@ type LegacyKitchenItem = {
   offerShortName?: string;
 };
 
-type LegacyOrder = {
+type ApiOrder = {
   billId: string;
   billRef: string;
   displayRef: string;
@@ -75,53 +71,24 @@ type LegacyOrder = {
     createdAt: string;
     printMessage: string | null;
   }>;
-  items: LegacyKitchenItem[];
+  items: ApiKitchenItem[];
 };
 
-type LegacyKitchenDisplayResponse = {
+type ApiKitchenDisplayResponse = {
+  source: "diary";
   warnings: string[];
   freshness: {
-    bookingsLastSuccessAt: string;
+    bookingsLastSuccessAt: string | null;
     redisBacked: boolean;
   };
-  boardRows: LegacyBoardRow[];
+  boardRows: ApiBoardRow[];
   activeOrders: {
-    inHouse: LegacyOrder[];
-    takeaway: LegacyOrder[];
+    inHouse: ApiOrder[];
+    takeaway: ApiOrder[];
   };
 };
 
-function isKitchenDisplayResponse(
-  value: KitchenDisplayResponse | LegacyKitchenDisplayResponse,
-): value is KitchenDisplayResponse {
-  return "tables" in value && "timeline" in value;
-}
-
-function addMinutes(isoString: string, minutes: number) {
-  return new Date(
-    new Date(isoString).getTime() + minutes * 60_000,
-  ).toISOString();
-}
-
-function getBookingDurationMinutes(covers: number | null) {
-  if (covers == null) {
-    return 90;
-  }
-
-  if (covers >= 6) {
-    return 150;
-  }
-
-  if (covers >= 3) {
-    return 120;
-  }
-
-  return 90;
-}
-
-function summarizeCategories(
-  items: LegacyKitchenItem[],
-): PrintCategorySummary[] {
+function summarizeCategories(items: ApiKitchenItem[]): PrintCategorySummary[] {
   const counts = new Map<string, PrintCategorySummary>();
 
   for (const item of items) {
@@ -147,7 +114,7 @@ function summarizeCategories(
   return [...counts.values()];
 }
 
-function toKitchenItems(items: LegacyKitchenItem[]): KitchenItem[] {
+function toKitchenItems(items: ApiKitchenItem[]): KitchenItem[] {
   return items.map((item) => ({
     billItemId: item.id,
     name: item.name,
@@ -163,11 +130,11 @@ function toKitchenItems(items: LegacyKitchenItem[]): KitchenItem[] {
   }));
 }
 
-function filterKitchenItems(items: LegacyKitchenItem[]) {
+function filterKitchenItems(items: ApiKitchenItem[]) {
   return items.filter((item) => item.printerGroup?.name === "Kitchen");
 }
 
-function toTableCalls(order: LegacyOrder): TableCall[] {
+function toTableCalls(order: ApiOrder): TableCall[] {
   return [...(order.billCallLogs ?? [])]
     .sort((left, right) => {
       return (
@@ -192,20 +159,20 @@ function toWarning(code: string): DisplayWarning {
   };
 }
 
-function toBookingSegment(row: LegacyBoardRow): BookingSegment {
+function toBookingSegment(row: ApiBoardRow): BookingSegment {
+  if (!Number.isFinite(Date.parse(row.departureTime))) {
+    throw new Error("Booking departure time is missing or invalid");
+  }
   return {
     id: `${row.tableRef}-${row.bookingTime}`,
-    label: row.bookingName ?? row.tableRef,
+    label: row.tableRef,
     covers: row.covers,
     startsAt: row.bookingTime,
-    createdAt: row.bookingCreatedAt,
-    endsAt:
-      row.departureTime ??
-      addMinutes(row.bookingTime, getBookingDurationMinutes(row.covers)),
+    endsAt: row.departureTime,
   };
 }
 
-function toLiveOverlay(order: LegacyOrder, nowIso: string): LiveTableOverlay {
+function toLiveOverlay(order: ApiOrder, nowIso: string): LiveTableOverlay {
   const kitchenItems = filterKitchenItems(order.items);
   const foodOrderedAt = getFirstKitchenItemTime(toKitchenItems(kitchenItems));
   const calledAt = getFirstBillCallTime(order.billCallLogs);
@@ -239,7 +206,7 @@ function toLiveOverlay(order: LegacyOrder, nowIso: string): LiveTableOverlay {
   };
 }
 
-function toActiveOrderCard(order: LegacyOrder): ActiveOrderCard {
+function toActiveOrderCard(order: ApiOrder): ActiveOrderCard {
   const foodOrderedAt = getFirstKitchenItemTime(toKitchenItems(order.items));
   const calledAt = getFirstBillCallTime(order.billCallLogs);
   const status: LiveTableStatus =
@@ -268,14 +235,16 @@ function toActiveOrderCard(order: LegacyOrder): ActiveOrderCard {
 }
 
 function normalizeKitchenDisplayResponse(
-  payload: KitchenDisplayResponse | LegacyKitchenDisplayResponse,
+  payload: ApiKitchenDisplayResponse,
 ): KitchenDisplayResponse {
-  if (isKitchenDisplayResponse(payload)) {
-    return payload;
+  if (payload.source !== "diary") {
+    throw new Error("Expected bookings-api kitchen board");
   }
+  const now = new Date().toISOString();
+  const bookingsUnavailable = payload.freshness.bookingsLastSuccessAt == null;
 
   const bookingRowsByTable = payload.boardRows.reduce<
-    Map<string, LegacyBoardRow[]>
+    Map<string, ApiBoardRow[]>
   >((accumulator, row) => {
     const existingRows = accumulator.get(row.tableRef) ?? [];
 
@@ -283,6 +252,13 @@ function normalizeKitchenDisplayResponse(
     accumulator.set(row.tableRef, existingRows);
     return accumulator;
   }, new Map());
+
+  // Walk-ins and drinks-only tables still belong on the live board.
+  for (const order of payload.activeOrders.inHouse) {
+    if (!bookingRowsByTable.has(order.displayRef)) {
+      bookingRowsByTable.set(order.displayRef, []);
+    }
+  }
 
   const kitchenInHouseOrders = payload.activeOrders.inHouse
     .map((order) => ({
@@ -313,27 +289,31 @@ function normalizeKitchenDisplayResponse(
         floor: "Service Floor",
         bookings: sortedRows.map(toBookingSegment),
         liveOverlay:
-          matchingOrder == null
-            ? null
-            : toLiveOverlay(
-                matchingOrder,
-                payload.freshness.bookingsLastSuccessAt,
-              ),
+          matchingOrder == null ? null : toLiveOverlay(matchingOrder, now),
       };
     },
   );
 
   return {
-    generatedAt: payload.freshness.bookingsLastSuccessAt,
-    warnings: payload.warnings.map(toWarning),
-    bookingsStatus: payload.warnings.includes("BOOKINGS_STALE")
-      ? "stale"
-      : "ok",
+    generatedAt: now,
+    warnings: bookingsUnavailable
+      ? [
+          {
+            code: "BOOKINGS_UNAVAILABLE",
+            message: "Bookings data is unavailable.",
+          },
+        ]
+      : payload.warnings.map(toWarning),
+    bookingsStatus: bookingsUnavailable
+      ? "unavailable"
+      : payload.warnings.includes("BOOKINGS_STALE")
+        ? "stale"
+        : "ok",
     liveOrdersStatus: "ok",
     timeline: {
       startHour: 12,
       endHour: 22,
-      now: payload.freshness.bookingsLastSuccessAt,
+      now,
     },
     tables,
     activeOrders: {
@@ -346,10 +326,9 @@ function normalizeKitchenDisplayResponse(
 
 export async function fetchKitchenDisplay(
   session: AuthSession,
-  endpoint = DEFAULT_ENDPOINT,
 ): Promise<AuthenticatedBoardResponse> {
   const requestBoard = (tokens: AuthSession) =>
-    fetch(buildApiUrl(getApiBaseUrl(), endpoint), {
+    fetch(buildApiUrl(getApiBaseUrl(), BOARD_ENDPOINT), {
       headers: {
         Authorization: `Bearer ${tokens.accessToken}`,
         "x-refresh-token": tokens.refreshToken,
@@ -357,14 +336,18 @@ export async function fetchKitchenDisplay(
       },
       signal: AbortSignal.timeout(25_000),
     });
-  let response = await requestBoard(session);
-  let renewedSession: AuthSession | null = null;
-  if (response.status === 401 && session.refreshToken.startsWith("pos2.")) {
-    renewedSession = await refreshSession(session);
+  const currentSession = getLatestAuthSession(session);
+  let response = await requestBoard(currentSession);
+  let renewedSession: AuthSession | null =
+    currentSession !== session ? currentSession : null;
+  if (response.status === 401) {
+    renewedSession = await refreshSession(currentSession);
     response = await requestBoard(renewedSession);
   }
 
   if (!response.ok) {
+    // A board rejection alone does not establish that the refresh token is invalid.
+    // Keep polling; a rejected renewal will explicitly end the session.
     throw new Error(`Kitchen display request failed: ${response.status}`);
   }
 
@@ -375,9 +358,7 @@ export async function fetchKitchenDisplay(
 
   return {
     data: normalizeKitchenDisplayResponse(
-      (await response.json()) as
-        | KitchenDisplayResponse
-        | LegacyKitchenDisplayResponse,
+      (await response.json()) as ApiKitchenDisplayResponse,
     ),
     nextSession:
       nextAccessToken != null && nextRefreshToken != null

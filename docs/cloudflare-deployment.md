@@ -29,6 +29,23 @@ Access tokens renew on an expired-session response. Refresh attempt identifiers
 are saved before renewal so an interrupted response can be retried safely.
 Token pairs are stored atomically before the board is retried.
 
+## Bookings source
+
+This display uses bookings-api exclusively through the POS server's authenticated
+`GET /api/kd/board/diary` endpoint. The server merges bookings-api's kitchen feed
+with live till snapshots. The proxy rejects the retired `/api/kd/board` route;
+there is no source flag, ResOS fallback, or alternate response format.
+
+The existing kitchen computer keeps its pairing. There is no staged device rollout.
+The POS server must have `BOOKING_DIARY_ORIGIN`, `BOOKING_DIARY_RESTAURANTS_JSON`
+(the organization-to-restaurant-slug mapping), and its `BOOKINGS_AUTH_*` signing
+configuration set, with the corresponding issuer trusted by bookings-api.
+These are server settings, never browser environment variables.
+
+Bookings use the API's departure times and table references; the redacted feed
+contains no guest names or booking creation times. If bookings-api is unavailable,
+the display shows a bookings warning and continues displaying live till activity.
+
 ## Commands
 
 Use Yarn Classic 1.22.22, matching `packageManager` in `package.json` and the
