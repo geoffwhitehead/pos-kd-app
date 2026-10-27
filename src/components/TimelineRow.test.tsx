@@ -4,6 +4,26 @@ import { sampleKitchenDisplayResponse } from "../test/fixtures/kitchenDisplay";
 import { TimelineRow } from "./TimelineRow";
 
 describe("TimelineRow", () => {
+  it("identifies joined bookings with and without a live order", () => {
+    const row = structuredClone(sampleKitchenDisplayResponse.tables[0]);
+    row.bookings[0].tableRefs = ["12", "14"];
+    const props = {
+      row,
+      timeline: sampleKitchenDisplayResponse.timeline,
+      onSelect: vi.fn(),
+    };
+    const { rerender } = render(<TimelineRow {...props} />);
+    expect(screen.getByLabelText("Joined tables 12 + 14")).toHaveTextContent(
+      "J",
+    );
+    expect(screen.getByTitle(/Joined tables 12 \+ 14:/)).toBeInTheDocument();
+    row.liveOverlay = null;
+    rerender(<TimelineRow {...props} />);
+    expect(screen.getByLabelText("Joined tables 12 + 14")).toHaveTextContent(
+      "J",
+    );
+  });
+
   it("shows mains quantities as estimated covers on walk-in cells", () => {
     const row = structuredClone(sampleKitchenDisplayResponse.tables[1]!);
     row.liveOverlay!.categorySummary = [

@@ -1,4 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  getBookingTotals,
+  getServiceStats,
+  getBookingPressureBySlot,
+} from "../lib/boardStats";
 import { fetchKitchenDisplay } from "./fetchKitchenDisplay";
 
 vi.mock("../config/api", () => ({
@@ -16,6 +21,86 @@ describe("fetchKitchenDisplay", () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
+
+  it.each([false, true])(
+    "handles joined tables with expanded response rows: %s",
+    async (expanded) => {
+      const booking = {
+        tableRef: "12",
+        tableRefs: ["12", "14", "14"],
+        bookingTime: "2026-07-18T16:00:00Z",
+        departureTime: "2026-07-18T18:00:00Z",
+        covers: 8,
+        state: "booked",
+        hasOpenBill: false,
+      };
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue({
+          ok: true,
+          headers: new Headers(),
+          json: async () => ({
+            source: "diary",
+            warnings: [],
+            freshness: { bookingsLastSuccessAt: "2026-07-18T15:00:00Z" },
+            boardRows: expanded
+              ? [
+                  booking,
+                  { ...booking, tableRef: "14", tableRefs: ["14", "12"] },
+                ]
+              : [booking],
+            activeOrders: {
+              inHouse: [
+                {
+                  billId: "bill14",
+                  billRef: "14",
+                  displayRef: "14",
+                  serviceType: "dine_in",
+                  billCreatedAt: "2026-07-18T16:00:00Z",
+                  updatedAt: "2026-07-18T16:10:00Z",
+                  hasOpenBill: true,
+                  items: [],
+                },
+              ],
+              takeaway: [],
+            },
+          }),
+        }),
+      );
+      const { data } = await fetchKitchenDisplay({
+        accessToken: "access",
+        refreshToken: "refresh",
+      });
+      expect(data.tables.map((row) => row.tableRef)).toEqual(["12", "14"]);
+      expect(data.tables.map((row) => row.bookings.length)).toEqual([1, 1]);
+      expect(data.tables[0].bookings[0]).toMatchObject({
+        tableRefs: ["12", "14"],
+        label: "12 + 14",
+        covers: 8,
+      });
+      expect(data.tables[1].bookings[0].id).toBe(data.tables[0].bookings[0].id);
+      expect(data.tables[1].liveOverlay?.billId).toBe("bill14");
+      expect(getBookingTotals(data.tables)).toEqual({
+        totalBookings: 1,
+        totalCovers: 8,
+      });
+      expect(getServiceStats(data, [], "2026-07-18T15:45:00Z")).toMatchObject({
+        totalBookingsRemaining: 1,
+        totalCoversRemaining: 8,
+        dueNext30: { tables: 2, covers: 8 },
+      });
+      expect(
+        getServiceStats(data, [], "2026-07-18T16:10:00Z").orderingSoonCovers,
+      ).toBe(8);
+      expect(
+        getBookingPressureBySlot(data.tables, {
+          ...data.timeline,
+          startIso: "2026-07-18T16:30:00Z",
+          endIso: "2026-07-18T17:00:00Z",
+        })[0],
+      ).toMatchObject({ starters: 1, starterCovers: 8 });
+    },
+  );
 
   it("normalizes the live server board payload into the UI response shape", async () => {
     vi.stubGlobal(

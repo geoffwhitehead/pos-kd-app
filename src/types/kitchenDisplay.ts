@@ -36,6 +36,8 @@ export type TableCall = {
 
 export type BookingSegment = {
   id: string;
+  /** All physical tables occupied by this reservation. */
+  tableRefs?: string[];
   createdAt?: string;
   label: string;
   covers: number | null;

@@ -199,7 +199,12 @@ export function TimelineRow({
         alignItems: "center",
       }}
     >
-      <strong style={{ fontSize: `${layout.rowLabelFontSize}px` }}>
+      <strong
+        style={{
+          fontSize: `${layout.rowLabelFontSize}px`,
+          lineHeight: `${layout.rowHeight}px`,
+        }}
+      >
         {row.tableRef}
       </strong>
       <div
@@ -236,6 +241,11 @@ export function TimelineRow({
               key={booking.id}
               type="button"
               className={styles.cell}
+              title={
+                booking.tableRefs && booking.tableRefs.length > 1
+                  ? `Joined tables ${booking.tableRefs.join(" + ")}: ${booking.covers ?? "Unknown"} covers total`
+                  : undefined
+              }
               data-new-booking={isNewBooking(booking.createdAt)}
               onClick={() => onSelect(row.displayRef)}
               style={{
@@ -265,6 +275,14 @@ export function TimelineRow({
                 }}
               >
                 {booking.covers ?? ""}
+                {booking.tableRefs && booking.tableRefs.length > 1 ? (
+                  <span
+                    className={styles.badge}
+                    aria-label={`Joined tables ${booking.tableRefs.join(" + ")}`}
+                  >
+                    J
+                  </span>
+                ) : null}
                 {isNewBooking(booking.createdAt) ? (
                   <span
                     className={styles.badge}
@@ -280,6 +298,11 @@ export function TimelineRow({
             <div
               key={booking.id}
               className={styles.cell}
+              title={
+                booking.tableRefs && booking.tableRefs.length > 1
+                  ? `Joined tables ${booking.tableRefs.join(" + ")}: ${booking.covers ?? "Unknown"} covers total`
+                  : undefined
+              }
               data-new-booking={isNewBooking(booking.createdAt)}
               style={{
                 ...buildSegmentStyle(booking.startsAt, booking.endsAt, bounds),
@@ -308,6 +331,14 @@ export function TimelineRow({
                 }}
               >
                 {booking.covers ?? ""}
+                {booking.tableRefs && booking.tableRefs.length > 1 ? (
+                  <span
+                    className={styles.badge}
+                    aria-label={`Joined tables ${booking.tableRefs.join(" + ")}`}
+                  >
+                    J
+                  </span>
+                ) : null}
                 {isNewBooking(booking.createdAt) ? (
                   <span
                     className={styles.badge}

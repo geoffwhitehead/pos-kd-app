@@ -9,7 +9,22 @@ import { buildTimelineSlotsForWindow } from "./timeline";
 
 export type PressureBand = "0-30" | "30-60" | "60-90";
 
+// Joined reservations appear on every allocated table, but represent one party.
+function uniqueBookingRows(rows: ServiceBoardRow[]): ServiceBoardRow[] {
+  const seen = new Set<string>();
+  return rows.map((row) => ({
+    ...row,
+    bookings: row.bookings.filter((booking) => {
+      if (!booking.tableRefs || booking.tableRefs.length < 2) return true;
+      if (seen.has(booking.id)) return false;
+      seen.add(booking.id);
+      return true;
+    }),
+  }));
+}
+
 export function getBookingTotals(rows: ServiceBoardRow[]) {
+  rows = uniqueBookingRows(rows);
   return rows.reduce(
     (totals, row) => {
       for (const booking of row.bookings) {
@@ -133,7 +148,7 @@ export function getServiceStats(
   retainedOrders: RetainedActiveOrder[] = [],
   currentTime?: string,
 ) {
-  const rows = data?.tables ?? [];
+  const rows = uniqueBookingRows(data?.tables ?? []);
   const nowIso = currentTime ?? data?.timeline.now ?? new Date().toISOString();
   const endIso = localTimeOnServiceDateToIso(
     getServiceDateString(nowIso),
@@ -183,7 +198,7 @@ export function getServiceStats(
           }
 
           return {
-            tables: bookingTotals.tables + 1,
+            tables: bookingTotals.tables + (booking.tableRefs?.length || 1),
             covers: bookingTotals.covers + (booking.covers ?? 0),
           };
         },
@@ -214,7 +229,7 @@ export function getServiceStats(
           }
 
           return {
-            tables: bookingTotals.tables + 1,
+            tables: bookingTotals.tables + (booking.tableRefs?.length || 1),
             covers: bookingTotals.covers + (booking.covers ?? 0),
           };
         },
@@ -228,7 +243,8 @@ export function getServiceStats(
     },
     { tables: 0, covers: 0 },
   );
-  const orderingSoon = rows.reduce(
+  const orderingBookings = new Set<string>();
+  const orderingSoon = (data?.tables ?? []).reduce(
     (totalsForSoon, row) => {
       if (row.liveOverlay?.status !== "active") {
         return totalsForSoon;
@@ -242,7 +258,10 @@ export function getServiceStats(
             new Date(booking.startsAt).getTime() <
               new Date(row.liveOverlay!.endsAt).getTime();
 
-          return overlapsOverlay ? covers + (booking.covers ?? 0) : covers;
+          if (!overlapsOverlay || orderingBookings.has(booking.id))
+            return covers;
+          orderingBookings.add(booking.id);
+          return covers + (booking.covers ?? 0);
         },
         0,
       );
@@ -345,6 +364,7 @@ export function getBookingPressureBySlot(
     endIso: string;
   },
 ) {
+  rows = uniqueBookingRows(rows);
   const slots = buildTimelineSlotsForWindow(
     visibleTimeline.startIso,
     visibleTimeline.endIso,

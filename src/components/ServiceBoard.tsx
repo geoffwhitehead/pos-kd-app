@@ -19,6 +19,7 @@ type Props = {
 };
 
 const RESERVED_VIEWPORT_HEIGHT = 360;
+const EMPTY_ROW_HEIGHT = 12;
 const MIN_ROW_HEIGHT = 22;
 const MAX_ROW_HEIGHT = 34;
 const MIN_BOOKING_HEIGHT = 14;
@@ -57,7 +58,10 @@ export function ServiceBoard({
 
   const visibleTimeline = buildVisibleBoardTimeline(rows, timeline);
   const visibleRows = filterRowsForVisibleWindow(rows, visibleTimeline);
-  const rowCount = Math.max(visibleRows.length, 1);
+  const emptyRowCount = visibleRows.filter(
+    (row) => row.bookings.length === 0 && row.liveOverlay == null,
+  ).length;
+  const rowCount = Math.max(visibleRows.length - emptyRowCount, 1);
   const serviceDate =
     visibleTimeline.serviceDate ?? visibleTimeline.now.slice(0, 10);
   const bounds = {
@@ -85,7 +89,9 @@ export function ServiceBoard({
     viewportHeight - RESERVED_VIEWPORT_HEIGHT,
   );
   const rowHeight = clamp(
-    Math.floor(availableGridHeight / rowCount) - 2,
+    Math.floor(
+      (availableGridHeight - emptyRowCount * (EMPTY_ROW_HEIGHT + 2)) / rowCount,
+    ) - 2,
     MIN_ROW_HEIGHT,
     MAX_ROW_HEIGHT,
   );
@@ -157,7 +163,15 @@ export function ServiceBoard({
                   key={row.displayRef}
                   row={row}
                   timeline={visibleTimeline}
-                  layout={layout}
+                  layout={
+                    row.bookings.length === 0 && row.liveOverlay == null
+                      ? {
+                          ...layout,
+                          rowHeight: EMPTY_ROW_HEIGHT,
+                          rowLabelFontSize: 10,
+                        }
+                      : layout
+                  }
                   onSelect={onSelect}
                 />
               ))}

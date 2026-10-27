@@ -21,7 +21,7 @@ describe("ServiceBoard", () => {
     expect(screen.getByLabelText(/ground floor/i)).toBeInTheDocument();
   });
 
-  it("shrinks the visible board window and filters out rows with nothing relevant in it", () => {
+  it("shrinks the visible board window and keeps empty rows compact", () => {
     render(
       <ServiceBoard
         rows={[
@@ -49,7 +49,14 @@ describe("ServiceBoard", () => {
 
     expect(screen.getByText("19:00")).toBeInTheDocument();
     expect(screen.queryByText("12:00")).not.toBeInTheDocument();
-    expect(screen.queryByText("99")).not.toBeInTheDocument();
+    const emptyLabel = screen.getByText("99");
+    expect(emptyLabel).toBeInTheDocument();
+    expect(emptyLabel).toHaveStyle({ fontSize: "10px", lineHeight: "12px" });
+    expect(emptyLabel.nextElementSibling).toHaveStyle({ minHeight: "12px" });
+    expect(screen.queryByLabelText(/Past booking/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /live order 12/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders two booking pressure strips for 0-30 and 30-60 minute windows", () => {

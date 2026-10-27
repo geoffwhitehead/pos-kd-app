@@ -109,38 +109,36 @@ export function filterRowsForVisibleWindow(
   rows: ServiceBoardRow[],
   visibleTimeline: ReturnType<typeof buildVisibleBoardTimeline>,
 ) {
-  return rows
-    .map((row) => {
-      const bookings = row.bookings.filter((booking) =>
-        overlapsWindow(
-          booking.startsAt,
-          booking.endsAt,
-          visibleTimeline.startIso,
-          visibleTimeline.endIso,
-        ),
-      );
-      const effectiveOverlay =
-        row.liveOverlay && !row.liveOverlay.isRetained
-          ? { ...row.liveOverlay, endsAt: visibleTimeline.now }
-          : row.liveOverlay;
-      const liveOverlay =
-        effectiveOverlay &&
-        overlapsWindow(
-          effectiveOverlay.startsAt,
-          effectiveOverlay.endsAt,
-          visibleTimeline.startIso,
-          visibleTimeline.endIso,
-        )
-          ? effectiveOverlay
-          : null;
+  return rows.map((row) => {
+    const bookings = row.bookings.filter((booking) =>
+      overlapsWindow(
+        booking.startsAt,
+        booking.endsAt,
+        visibleTimeline.startIso,
+        visibleTimeline.endIso,
+      ),
+    );
+    const effectiveOverlay =
+      row.liveOverlay && !row.liveOverlay.isRetained
+        ? { ...row.liveOverlay, endsAt: visibleTimeline.now }
+        : row.liveOverlay;
+    const liveOverlay =
+      effectiveOverlay &&
+      overlapsWindow(
+        effectiveOverlay.startsAt,
+        effectiveOverlay.endsAt,
+        visibleTimeline.startIso,
+        visibleTimeline.endIso,
+      )
+        ? effectiveOverlay
+        : null;
 
-      return {
-        ...row,
-        bookings,
-        liveOverlay,
-      };
-    })
-    .filter((row) => row.bookings.length > 0 || row.liveOverlay != null);
+    return {
+      ...row,
+      bookings,
+      liveOverlay,
+    };
+  });
 }
 
 export function toTimelinePercent(isoValue: string, bounds: TimelineBounds) {

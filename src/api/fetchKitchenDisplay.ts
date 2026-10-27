@@ -28,6 +28,7 @@ export type AuthenticatedBoardResponse = {
 
 type ApiBoardRow = {
   tableRef: string;
+  tableRefs?: string[];
   bookingTime: string;
   departureTime: string;
   covers: number | null;
@@ -159,13 +160,18 @@ function toWarning(code: string): DisplayWarning {
   };
 }
 
+function getTableRefs(row: ApiBoardRow): string[] {
+  return [...new Set([row.tableRef, ...(row.tableRefs ?? [])])].sort();
+}
+
 function toBookingSegment(row: ApiBoardRow): BookingSegment {
   if (!Number.isFinite(Date.parse(row.departureTime))) {
     throw new Error("Booking departure time is missing or invalid");
   }
   return {
-    id: `${row.tableRef}-${row.bookingTime}`,
-    label: row.tableRef,
+    id: `${JSON.stringify(getTableRefs(row))}-${row.bookingTime}`,
+    tableRefs: getTableRefs(row),
+    label: getTableRefs(row).join(" + "),
     covers: row.covers,
     startsAt: row.bookingTime,
     endsAt: row.departureTime,
@@ -246,10 +252,16 @@ function normalizeKitchenDisplayResponse(
   const bookingRowsByTable = payload.boardRows.reduce<
     Map<string, ApiBoardRow[]>
   >((accumulator, row) => {
-    const existingRows = accumulator.get(row.tableRef) ?? [];
-
-    existingRows.push(row);
-    accumulator.set(row.tableRef, existingRows);
+    for (const tableRef of getTableRefs(row)) {
+      const existingRows = accumulator.get(tableRef) ?? [];
+      const id = toBookingSegment(row).id;
+      if (
+        !existingRows.some((existing) => toBookingSegment(existing).id === id)
+      ) {
+        existingRows.push(row);
+      }
+      accumulator.set(tableRef, existingRows);
+    }
     return accumulator;
   }, new Map());
 
