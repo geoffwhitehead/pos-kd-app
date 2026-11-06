@@ -1,3 +1,4 @@
+import { observeHttp } from "./observability.mjs";
 const routes = new Set([
   "GET /api/kd/board/diary",
   "POST /api/security/pair",
@@ -93,11 +94,13 @@ export default {
   async fetch(request, env) {
     const pathname = new URL(request.url).pathname;
     if (pathname === "/api" || pathname.startsWith("/api/")) {
-      try {
-        return await proxyApi(request, env);
-      } catch {
-        return failure(502, "Kitchen data unavailable. Retrying shortly.");
-      }
+      return observeHttp("pos-kitchen", "production", request, async () => {
+        try {
+          return await proxyApi(request, env);
+        } catch {
+          return failure(502, "Kitchen data unavailable. Retrying shortly.");
+        }
+      });
     }
     return env.ASSETS.fetch(request);
   },

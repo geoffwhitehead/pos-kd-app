@@ -17,5 +17,10 @@
     "ORGANIZATION_ID": "2ff0c4e6-e724-4b95-878a-21ce820c4c5c",
   },
   "routes": [{ "pattern": "kitchen.nomi.restaurant", "custom_domain": true }],
-  "observability": { "enabled": true },
+  "observability": {
+    "redact_query_string": true,
+    "enabled": true,
+    "logs": { "enabled": true, "head_sampling_rate": 1, "invocation_logs": false },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 }
+  },
 }
