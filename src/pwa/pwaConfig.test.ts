@@ -6,7 +6,7 @@ describe("pwaConfig", () => {
     expect(pwaManifest.name).toBe("Nomi Kitchen Display");
     expect(pwaManifest.short_name).toBe("Kitchen");
     expect(pwaManifest.display).toBe("fullscreen");
-    expect(pwaManifest.theme_color).toBe("#101716");
+    expect(pwaManifest.theme_color).toBe("#ffffff");
   });
 
   it("uses shell caching without runtime API caching", () => {
